@@ -669,14 +669,22 @@ async function savePlan(){
 }
 
 // ─── KALENDARZ ────────────────────────────────────────────────────────────────
-let calEvents={};
+// każdy dzień zapisywany osobno w kolekcji 'events', docId = '2025-04-08'
+let calEventsCache={};
 
 async function renderCal(){
   const {year,month}=st.cal;
   document.getElementById('cal-month-label').textContent=MONTHS[month]+' '+year;
-  // Load events for visible range
-  const data=await fbGet('events','month_'+year+'_'+pad(month+1));
-  calEvents=data?.events||{};
+  // wczytaj wszystkie dni tego miesiąca równolegle
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const promises=[];
+  for(let d=1;d<=daysInMonth;d++){
+    const key=fmtDate(new Date(year,month,d));
+    promises.push(fbGet('events',key).then(data=>{
+      calEventsCache[key]=data?.items||[];
+    }));
+  }
+  await Promise.all(promises);
   renderCalCells();
 }
 
@@ -699,12 +707,12 @@ function renderCalCells(){
     }else if(day<=daysInMonth){
       key=fmtDate(new Date(year,month,day));label=day;
       if(key===todayKey)cls+=' today';
-      if(calEvents[key]?.length)cls+=' has-event';
+      if((calEventsCache[key]||[]).length)cls+=' has-event';
       day++;
     }else{
       key=fmtDate(new Date(year,month+1,next));label=next;cls+=' other-month';next++;
     }
-    const evs=(calEvents[key]||[]).slice(0,3);
+    const evs=(calEventsCache[key]||[]).slice(0,3);
     html+=`<div class="${cls}" onclick="openCalModal('${key}')">
       <div class="cal-day-num">${label}</div>
       ${evs.map(e=>`<div class="cal-event">${e.time?e.time+' ':''} ${escHtml(e.title)}</div>`).join('')}
@@ -723,12 +731,13 @@ function changeMonth(d){
   renderCal();
 }
 
-function openCalModal(dateKey){
+async function openCalModal(dateKey){
+  // zawsze wczytaj świeże dane z Firebase przed otwarciem modala
+  const data=await fbGet('events',dateKey);
+  calEventsCache[dateKey]=data?.items||[];
+  const evs=calEventsCache[dateKey];
   const dt=new Date(dateKey+'T12:00:00');
   const label=dt.getDate()+' '+MONTHS_GEN[dt.getMonth()]+' '+dt.getFullYear();
-  const evs=calEvents[dateKey]||[];
-  const {year,month}=st.cal;
-  const storageKey='month_'+year+'_'+pad(month+1);
   document.getElementById('modal-root').innerHTML=`
   <div class="modal-backdrop" onclick="if(event.target===this)closeModal()">
     <div class="modal">
@@ -738,7 +747,7 @@ function openCalModal(dateKey){
           ?evs.map((e,i)=>`
             <div class="modal-event-item">
               <span>${e.time?`<span class="ev-time-badge">${e.time}</span>`:''} ${escHtml(e.title)}</span>
-              <button class="task-del" onclick="deleteEvent('${dateKey}','${storageKey}',${i})">✕</button>
+              <button class="task-del" onclick="deleteEvent('${dateKey}',${i})">✕</button>
             </div>`).join('')
           :'<p style="font-size:12px;color:var(--muted);padding:4px 0">Brak wydarzeń</p>'}
       </div>
@@ -748,27 +757,28 @@ function openCalModal(dateKey){
         <input type="time" id="ev-time"></div>
       <div class="modal-footer">
         <button class="btn btn-ghost btn-sm" onclick="closeModal()">Zamknij</button>
-        <button class="btn btn-sm" onclick="addEvent('${dateKey}','${storageKey}')">+ Dodaj</button>
+        <button class="btn btn-sm" onclick="addEvent('${dateKey}')">+ Dodaj</button>
       </div>
     </div>
   </div>`;
 }
 
-async function addEvent(dateKey,storageKey){
+async function addEvent(dateKey){
   const title=document.getElementById('ev-title').value.trim();
   if(!title)return;
   const time=document.getElementById('ev-time').value;
-  if(!calEvents[dateKey])calEvents[dateKey]=[];
-  calEvents[dateKey].push({title,time});
-  calEvents[dateKey].sort((a,b)=>a.time.localeCompare(b.time));
-  await fbSet('events',storageKey,{events:calEvents});
+  const evs=calEventsCache[dateKey]||[];
+  evs.push({title,time});
+  evs.sort((a,b)=>a.time.localeCompare(b.time));
+  calEventsCache[dateKey]=evs;
+  await fbSet('events',dateKey,{items:evs,updated:new Date().toISOString()});
   closeModal();
   renderCalCells();
 }
 
-async function deleteEvent(dateKey,storageKey,i){
-  calEvents[dateKey].splice(i,1);
-  await fbSet('events',storageKey,{events:calEvents});
+async function deleteEvent(dateKey,i){
+  calEventsCache[dateKey].splice(i,1);
+  await fbSet('events',dateKey,{items:calEventsCache[dateKey],updated:new Date().toISOString()});
   closeModal();
   renderCalCells();
 }
