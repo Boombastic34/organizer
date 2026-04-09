@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
@@ -25,1322 +24,1355 @@
     appId:             "1:918521066663:web:51ea9be8cdc042834ad782"
   };
 
-  const app  = initializeApp(firebaseConfig);
+  const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db   = getFirestore(app);
+  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
   window._fb = { auth, db, provider, signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, deleteDoc };
 </script>
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --sidebar-w:240px;
-  --accent:#1e5c41;--accent-hover:#174d37;--accent-light:#eaf3ee;--accent-mid:#4f9172;
-  --text:#18181b;--muted:#6b7280;--border:rgba(0,0,0,0.09);--border-med:rgba(0,0,0,0.14);
-  --surface:#fff;--page:#f5f4f0;--radius:10px;--radius-lg:14px;
+  --sw:238px;--acc:#1e5c41;--ach:#174d37;--acl:#eaf3ee;--acm:#4f9172;
+  --tx:#18181b;--mu:#6b7280;--br:rgba(0,0,0,0.09);--brm:rgba(0,0,0,0.14);
+  --sf:#fff;--pg:#f5f4f0;--r:10px;--rl:14px;
 }
-html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--page);color:var(--text);font-size:14px}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--pg);color:var(--tx);font-size:14px}
 
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--page);display:flex;align-items:center;justify-content:center;z-index:1000}
-.login-card{background:var(--surface);border:1px solid var(--border-med);border-radius:var(--radius-lg);padding:48px 44px;width:360px;text-align:center}
-.login-logo{width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
-.login-logo svg{fill:#fff;width:26px;height:26px}
-.login-card h1{font-family:'Lora',serif;font-size:22px;font-weight:500;margin-bottom:8px}
-.login-card p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:28px}
-.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 20px;border-radius:var(--radius);border:1px solid var(--border-med);background:var(--surface);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);transition:all 0.15s}
-.btn-google:hover{background:var(--page);border-color:var(--accent-mid)}
-.btn-google img{width:18px;height:18px}
-#login-error{margin-top:14px;font-size:12px;color:#c0392b;display:none}
-#login-loading{margin-top:14px;font-size:12px;color:var(--muted);display:none}
+#ls{position:fixed;inset:0;background:var(--pg);display:flex;align-items:center;justify-content:center;z-index:1000}
+.lc{background:var(--sf);border:1px solid var(--brm);border-radius:var(--rl);padding:44px;width:360px;text-align:center}
+.ll{width:50px;height:50px;background:var(--acc);border-radius:13px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.ll svg{fill:#fff;width:24px;height:24px}
+.lc h1{font-family:'Lora',serif;font-size:21px;font-weight:500;margin-bottom:7px}
+.lc p{font-size:13px;color:var(--mu);line-height:1.6;margin-bottom:26px}
+.bg{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:10px 18px;border-radius:var(--r);border:1px solid var(--brm);background:var(--sf);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--tx);transition:all .15s}
+.bg:hover{background:var(--pg);border-color:var(--acm)}
+.bg img{width:18px;height:18px}
+#le{margin-top:12px;font-size:12px;color:#c0392b;display:none}
+#ll2{margin-top:12px;font-size:12px;color:var(--mu);display:none}
 
 /* LAYOUT */
-#app{display:none;height:100vh;flex-direction:row}
-#app.visible{display:flex}
-#sidebar{width:var(--sidebar-w);background:var(--accent);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
-#sidebar-header{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
-#sidebar-header h1{font-family:'Lora',serif;font-size:17px;font-weight:500;color:#fff;letter-spacing:0.2px}
-#sidebar-user{display:flex;align-items:center;gap:8px;margin-top:10px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,0.1)}
-#sidebar-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0}
-#sidebar-username{font-size:11px;color:rgba(255,255,255,0.85);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#btn-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.45);font-size:11px;padding:2px 4px;transition:color 0.15s;flex-shrink:0}
-#btn-logout:hover{color:#fff}
-#nav{padding:8px 0;flex:1;overflow-y:auto}
-.nav-section-label{font-size:10px;color:rgba(255,255,255,0.4);padding:10px 18px 4px;text-transform:uppercase;letter-spacing:0.8px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:13px;border-left:3px solid transparent;transition:all 0.15s;user-select:none;position:relative}
-.nav-item:hover{background:rgba(255,255,255,0.1);color:#fff}
-.nav-item.active{background:rgba(255,255,255,0.16);color:#fff;border-left-color:#fff;font-weight:500}
-.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
-.nav-item-actions{display:none;gap:3px;margin-left:auto}
-.nav-item:hover .nav-item-actions{display:flex}
-.nav-act-btn{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.5);font-size:11px;padding:2px 4px;border-radius:3px;transition:all 0.1s}
-.nav-act-btn:hover{color:#fff;background:rgba(255,255,255,0.15)}
-.nav-add-btn{display:flex;align-items:center;gap:8px;padding:8px 18px;cursor:pointer;color:rgba(255,255,255,0.5);font-size:12px;transition:all 0.15s;border-top:1px solid rgba(255,255,255,0.08);margin-top:4px}
-.nav-add-btn:hover{color:#fff;background:rgba(255,255,255,0.08)}
-#sidebar-footer{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.12)}
-#sidebar-footer p{font-size:10px;color:rgba(255,255,255,0.35);line-height:1.5}
-.sync-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);font-size:10px;padding:2px 8px;border-radius:20px;margin-top:4px}
-.sync-dot{width:5px;height:5px;border-radius:50%;background:#5fcb8e}
+#app{display:none;height:100vh}
+#app.v{display:flex}
+#sb{width:var(--sw);background:var(--acc);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+#sbh{padding:18px 17px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+#sbh h1{font-family:'Lora',serif;font-size:17px;font-weight:500;color:#fff}
+#sbu{display:flex;align-items:center;gap:7px;margin-top:9px;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.1)}
+#sba{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0}
+#sbun{font-size:11px;color:rgba(255,255,255,.85);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#blo{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:11px;padding:2px 4px;transition:color .15s}
+#blo:hover{color:#fff}
+#nav{padding:6px 0;flex:1;overflow-y:auto}
+.nsl{font-size:10px;color:rgba(255,255,255,.38);padding:9px 17px 3px;text-transform:uppercase;letter-spacing:.8px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 17px;cursor:pointer;color:rgba(255,255,255,.7);font-size:13px;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.ni:hover{background:rgba(255,255,255,.1);color:#fff}
+.ni.act{background:rgba(255,255,255,.16);color:#fff;border-left-color:#fff;font-weight:500}
+.nic{font-size:14px;width:17px;text-align:center;flex-shrink:0}
+.nia{display:none;gap:2px;margin-left:auto}
+.ni:hover .nia{display:flex}
+.nib{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.45);font-size:11px;padding:2px 4px;border-radius:3px;transition:all .1s}
+.nib:hover{color:#fff;background:rgba(255,255,255,.15)}
+.nadd{display:flex;align-items:center;gap:8px;padding:8px 17px;cursor:pointer;color:rgba(255,255,255,.45);font-size:12px;transition:all .15s;border-top:1px solid rgba(255,255,255,.08);margin-top:4px}
+.nadd:hover{color:#fff;background:rgba(255,255,255,.08)}
+#sbf{padding:11px 17px;border-top:1px solid rgba(255,255,255,.12)}
+#sbf p{font-size:10px;color:rgba(255,255,255,.3);line-height:1.5}
+.sbd{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.65);font-size:10px;padding:2px 8px;border-radius:20px;margin-top:4px}
+.sdd{width:5px;height:5px;border-radius:50%;background:#5fcb8e}
+/* firebase usage */
+#fb-usage{margin-top:6px;font-size:10px;color:rgba(255,255,255,.35);line-height:1.6}
 
-#main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
-#topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#topbar-title{font-family:'Lora',serif;font-size:16px;font-weight:500}
-#topbar-date{font-size:12px;color:var(--muted)}
-#content{flex:1;overflow-y:auto;padding:24px 26px}
-.section{display:none}
-.section.active{display:block}
+/* MAIN */
+#mn{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+#tb{background:var(--sf);border-bottom:1px solid var(--br);padding:0 22px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#tbt{font-family:'Lora',serif;font-size:16px;font-weight:500}
+#tbd{font-size:12px;color:var(--mu)}
+#ct{flex:1;overflow-y:auto;padding:22px 24px}
+.sec{display:none}.sec.act{display:block}
 
 /* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-family:'Lora',serif;font-size:15px;font-weight:500}
+.card{background:var(--sf);border:1px solid var(--br);border-radius:var(--rl);padding:19px;margin-bottom:15px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ct2{font-family:'Lora',serif;font-size:15px;font-weight:500}
 
-/* BUTTONS */
-.btn{background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;transition:background 0.15s;white-space:nowrap}
-.btn:hover{background:var(--accent-hover)}
-.btn:active{transform:scale(0.98)}
-.btn-sm{padding:5px 12px;font-size:12px;border-radius:7px}
-.btn-ghost{background:none;border:1px solid var(--border-med);color:var(--muted)}
-.btn-ghost:hover{background:var(--accent-light);border-color:var(--accent-mid);color:var(--accent)}
-.btn-danger{background:none;border:1px solid rgba(192,57,43,0.4);color:#c0392b}
-.btn-danger:hover{background:#c0392b;color:#fff}
+/* BTN */
+.btn{background:var(--acc);color:#fff;border:none;padding:7px 15px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;transition:background .15s;white-space:nowrap}
+.btn:hover{background:var(--ach)}.btn:active{transform:scale(.98)}
+.bsm{padding:5px 11px;font-size:12px;border-radius:7px}
+.bgh{background:none;border:1px solid var(--brm);color:var(--mu)}
+.bgh:hover{background:var(--acl);border-color:var(--acm);color:var(--acc)}
+.bdn{background:none;border:1px solid rgba(192,57,43,.35);color:#c0392b}
+.bdn:hover{background:#c0392b;color:#fff}
 
 /* INPUTS */
-textarea{width:100%;border:1px solid var(--border-med);border-radius:8px;padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:100px;background:var(--page);color:var(--text);line-height:1.65;outline:none;transition:border 0.15s}
-textarea:focus{border-color:var(--accent-mid)}
-input[type=text],input[type=time],input[type=number],select{border:1px solid var(--border-med);border-radius:7px;padding:7px 11px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--text);outline:none;transition:border 0.15s}
-input[type=text]:focus,input[type=time]:focus,input[type=number]:focus,select:focus{border-color:var(--accent-mid)}
+textarea{width:100%;border:1px solid var(--brm);border-radius:8px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:90px;background:var(--pg);color:var(--tx);line-height:1.65;outline:none;transition:border .15s}
+textarea:focus{border-color:var(--acm)}
+input[type=text],input[type=time],input[type=number],select{border:1px solid var(--brm);border-radius:7px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--sf);color:var(--tx);outline:none;transition:border .15s}
+input[type=text]:focus,input[type=time]:focus,input[type=number]:focus,select:focus{border-color:var(--acm)}
 select{cursor:pointer}
 
 /* STATUS */
-.save-bar{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-.save-status{font-size:12px;color:var(--accent-mid);min-height:16px}
-.spinner{width:12px;height:12px;border:2px solid var(--accent-light);border-top-color:var(--accent-mid);border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block}
+.sb2{display:flex;align-items:center;gap:9px;margin-top:11px;flex-wrap:wrap}
+.ss{font-size:12px;color:var(--acm);min-height:16px}
+.sp{width:12px;height:12px;border:2px solid var(--acl);border-top-color:var(--acm);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* DAY NAV */
-.day-nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
-.day-label{font-family:'Lora',serif;font-size:20px;font-weight:500}
-.day-sublabel{font-size:12px;color:var(--muted);margin-top:3px}
-.day-nav-btns{display:flex;align-items:center;gap:6px}
+.dnb{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.dl{font-family:'Lora',serif;font-size:20px;font-weight:500}
+.dsl{font-size:12px;color:var(--mu);margin-top:3px}
+.dnn{display:flex;align-items:center;gap:6px}
 
 /* PLAN */
-.task-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.05)}
-.task-row:last-child{border-bottom:none}
-.task-check{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;margin-top:2px;flex-shrink:0}
-.task-text{flex:1;font-size:13px;line-height:1.55;word-break:break-word}
-.task-text.done{color:var(--muted);text-decoration:line-through}
-.task-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:0 4px;opacity:0.4;transition:opacity 0.15s;flex-shrink:0}
-.task-del:hover{opacity:1;color:#c0392b}
-.add-task-row{display:flex;gap:8px;margin-top:14px}
-.add-task-row input{flex:1}
-.progress-tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--accent-light);color:var(--accent)}
+.tr{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.tr:last-child{border-bottom:none}
+.tc{width:16px;height:16px;accent-color:var(--acc);cursor:pointer;margin-top:2px;flex-shrink:0}
+.tt{flex:1;font-size:13px;line-height:1.55;word-break:break-word}
+.tt.dn{color:var(--mu);text-decoration:line-through}
+.td{background:none;border:none;cursor:pointer;color:var(--mu);font-size:13px;padding:0 3px;opacity:.4;transition:opacity .15s;flex-shrink:0}
+.td:hover{opacity:1;color:#c0392b}
+.atr{display:flex;gap:8px;margin-top:12px}
+.atr input{flex:1}
+.pt{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:var(--acl);color:var(--acc)}
 
 /* CALENDAR */
-.cal-month-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.cal-month-nav span{font-family:'Lora',serif;font-size:17px;font-weight:500;min-width:180px;text-align:center}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
-.cal-head{text-align:center;font-size:11px;font-weight:500;color:var(--muted);padding:5px 0;text-transform:uppercase;letter-spacing:0.5px}
-.cal-cell{min-height:70px;border:1px solid var(--border);border-radius:8px;padding:5px;cursor:pointer;transition:all 0.12s;background:var(--surface)}
-.cal-cell:hover{border-color:var(--accent-mid);background:var(--accent-light)}
-.cal-cell.today{border-color:var(--accent);background:var(--accent-light)}
-.cal-cell.other-month{opacity:0.38}
-.cal-cell.has-event{border-color:var(--accent-mid)}
-.cal-day-num{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:3px}
-.cal-cell.today .cal-day-num{color:var(--accent);font-weight:700}
-.cal-event{font-size:10px;background:var(--accent);color:#fff;border-radius:3px;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmn{display:flex;align-items:center;gap:10px;margin-bottom:15px}
+.cmn span{font-family:'Lora',serif;font-size:16px;font-weight:500;min-width:175px;text-align:center}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cha{text-align:center;font-size:11px;font-weight:500;color:var(--mu);padding:5px 0;text-transform:uppercase;letter-spacing:.5px}
+.cc{min-height:68px;border:1px solid var(--br);border-radius:8px;padding:4px;cursor:pointer;transition:all .12s;background:var(--sf)}
+.cc:hover{border-color:var(--acm);background:var(--acl)}
+.cc.td2{border-color:var(--acc);background:var(--acl)}
+.cc.om{opacity:.35}
+.cc.he{border-color:var(--acm)}
+.cdn{font-size:11px;font-weight:500;color:var(--mu);margin-bottom:2px}
+.cc.td2 .cdn{color:var(--acc);font-weight:700}
+.ce{font-size:10px;background:var(--acc);color:#fff;border-radius:3px;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* MODAL */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;z-index:500}
-.modal{background:var(--surface);border-radius:var(--radius-lg);padding:22px;width:380px;border:1px solid var(--border-med);max-height:90vh;overflow-y:auto}
-.modal h3{font-family:'Lora',serif;font-size:15px;margin-bottom:16px}
-.modal-row{margin-bottom:11px}
-.modal-row label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
-.modal-row input,.modal-row select,.modal-row textarea{width:100%}
-.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.modal-event-item{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-.modal-event-item:last-child{border-bottom:none}
-.ev-time-badge{font-size:11px;font-weight:500;color:var(--accent);background:var(--accent-light);padding:2px 7px;border-radius:4px;margin-right:8px}
+.mb{position:fixed;inset:0;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;z-index:500}
+.mo{background:var(--sf);border-radius:var(--rl);padding:21px;width:390px;border:1px solid var(--brm);max-height:90vh;overflow-y:auto}
+.mo h3{font-family:'Lora',serif;font-size:15px;margin-bottom:14px}
+.mr{margin-bottom:10px}
+.mr label{display:block;font-size:11px;font-weight:500;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.mr input,.mr select,.mr textarea{width:100%}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}
+.mei{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--br);font-size:13px}
+.mei:last-child{border-bottom:none}
+.etb{font-size:11px;font-weight:500;color:var(--acc);background:var(--acl);padding:2px 6px;border-radius:4px;margin-right:7px}
 
 /* JOURNAL/SUMMARY */
-.entry-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
-.entry-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.entry-time{font-size:11px;color:var(--muted);font-weight:500}
-.entry-body{font-size:13px;line-height:1.7;color:var(--text);word-break:break-word}
-.empty-state{text-align:center;padding:36px 20px;color:var(--muted)}
-.empty-state p{font-size:13px;margin-top:6px;line-height:1.6}
+.ec{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:13px;margin-bottom:10px}
+.ech{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.et{font-size:11px;color:var(--mu);font-weight:500}
+.eb{font-size:13px;line-height:1.7;color:var(--tx);word-break:break-word}
+.es{text-align:center;padding:32px 20px;color:var(--mu)}
+.es p{font-size:13px;margin-top:5px;line-height:1.6}
 
-/* RICH TEXT TOOLBAR */
-.rte-toolbar{display:flex;align-items:center;gap:3px;padding:6px 8px;background:var(--page);border:1px solid var(--border-med);border-bottom:none;border-radius:8px 8px 0 0;flex-wrap:wrap}
-.rte-btn{background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:5px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;transition:all 0.12s;line-height:1}
-.rte-btn:hover{background:var(--border);color:var(--accent)}
-.rte-btn.active{background:var(--accent-light);color:var(--accent)}
-.rte-sep{width:1px;height:16px;background:var(--border-med);margin:0 3px}
-.rte-color-btn{width:20px;height:20px;border-radius:4px;border:2px solid transparent;cursor:pointer;transition:border 0.1s}
-.rte-color-btn:hover,.rte-color-btn.active{border-color:var(--text)}
-.rte-size-select{font-size:11px;padding:3px 6px;height:26px}
-[contenteditable]{outline:none;min-height:80px;padding:11px;border:1px solid var(--border-med);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;background:var(--surface);color:var(--text);word-break:break-word}
-[contenteditable]:focus{border-color:var(--accent-mid)}
-[contenteditable]:empty:before{content:attr(data-placeholder);color:var(--muted);pointer-events:none}
+/* RTE */
+.rtb{display:flex;align-items:center;gap:2px;padding:5px 7px;background:var(--pg);border:1px solid var(--brm);border-bottom:none;border-radius:8px 8px 0 0;flex-wrap:wrap}
+.rb{background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:5px;font-size:13px;color:var(--tx);font-family:'DM Sans',sans-serif;transition:all .12s;line-height:1}
+.rb:hover{background:var(--brm);color:var(--acc)}
+.rs{width:1px;height:15px;background:var(--brm);margin:0 2px;flex-shrink:0}
+.rcb{width:19px;height:19px;border-radius:4px;border:2px solid transparent;cursor:pointer;flex-shrink:0;transition:border .1s}
+.rcb:hover,.rcb.on{border-color:var(--tx)}
+.rss{font-size:11px;padding:2px 5px;height:24px;border-radius:5px}
+[contenteditable]{outline:none;min-height:70px;padding:10px;border:1px solid var(--brm);border-radius:0 0 8px 8px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;background:var(--sf);color:var(--tx);word-break:break-word}
+[contenteditable]:focus{border-color:var(--acm)}
+[contenteditable]:empty:before{content:attr(data-placeholder);color:var(--mu);pointer-events:none}
+
+/* NOTATNIK — lista notatek */
+.note-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);margin-bottom:11px;overflow:hidden}
+.note-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid var(--br);background:var(--pg)}
+.note-title{font-size:13px;font-weight:500}
+.note-meta{font-size:11px;color:var(--mu);margin-right:8px}
+.note-body{padding:13px;font-size:13px;line-height:1.7;word-break:break-word}
+.note-acts{display:flex;gap:5px;align-items:center}
 
 /* PROJECTS */
-.projects-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
-.project-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all 0.15s}
-.project-card:hover{border-color:var(--accent-mid);box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-.project-card h3{font-family:'Lora',serif;font-size:14px;font-weight:500;margin-bottom:8px}
-.project-progress-bar{height:5px;background:var(--page);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.project-progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width 0.3s}
-.project-meta{font-size:11px;color:var(--muted)}
-.project-detail{display:none}
-.project-detail.active{display:block}
-.project-back{display:flex;align-items:center;gap:8px;margin-bottom:18px;cursor:pointer;color:var(--accent);font-size:13px;font-weight:500}
-.project-back:hover{opacity:0.8}
-.project-title-bar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.project-title-bar h2{font-family:'Lora',serif;font-size:22px;font-weight:500;flex:1}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:13px}
+.pc{background:var(--sf);border:1px solid var(--br);border-radius:var(--rl);padding:15px;cursor:pointer;transition:all .15s}
+.pc:hover{border-color:var(--acm);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.pc h3{font-family:'Lora',serif;font-size:14px;font-weight:500;margin-bottom:7px}
+.ppb{height:5px;background:var(--pg);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.ppf{height:100%;background:var(--acc);border-radius:3px;transition:width .3s}
+.pm{font-size:11px;color:var(--mu)}
+.pback{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--acc);font-size:13px;font-weight:500}
+.pback:hover{opacity:.75}
+.ptb{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.ptb h2{font-family:'Lora',serif;font-size:21px;font-weight:500;flex:1}
 
-/* PROGRESS STAGES */
-.stages-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px}
-.stages-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.stages-title{font-size:13px;font-weight:500}
-.big-progress{height:10px;background:var(--page);border-radius:5px;overflow:hidden;margin-bottom:10px}
-.big-progress-fill{height:100%;background:var(--accent);border-radius:5px;transition:width 0.4s}
-.progress-pct{font-size:13px;font-weight:500;color:var(--accent)}
-.stages-list{display:flex;flex-direction:column;gap:5px}
-.stage-row{display:flex;align-items:center;gap:10px;padding:5px 0}
-.stage-check{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
-.stage-name{flex:1;font-size:13px}
-.stage-name.done{color:var(--muted);text-decoration:line-through}
-.stage-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;opacity:0.4;transition:opacity 0.15s;padding:0 3px}
-.stage-del:hover{opacity:1;color:#c0392b}
+/* STAGES */
+.stgb{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:15px;margin-bottom:18px}
+.stgh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bpb{height:9px;background:var(--pg);border-radius:5px;overflow:hidden;margin-bottom:9px}
+.bpf{height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
+.ppct{font-size:13px;font-weight:500;color:var(--acc)}
+.stgr{display:flex;align-items:center;gap:9px;padding:5px 0}
+.stgc{width:15px;height:15px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
+.stgn{flex:1;font-size:13px}
+.stgn.dn{color:var(--mu);text-decoration:line-through}
+.stgd{background:none;border:none;cursor:pointer;color:var(--mu);font-size:11px;opacity:.35;transition:opacity .15s;padding:0 3px}
+.stgd:hover{opacity:1;color:#c0392b}
 
-/* PROJECT COLUMNS */
-.columns-area{display:flex;flex-direction:column;gap:16px}
-.columns-row-full{width:100%}
-.columns-row-half{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.columns-row-third{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.col-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-.col-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--page)}
-.col-title{font-size:13px;font-weight:500}
-.col-body{padding:14px}
-.col-actions{display:flex;gap:4px}
-.col-act{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:2px 5px;border-radius:4px;transition:all 0.1s}
-.col-act:hover{background:var(--accent-light);color:var(--accent)}
+/* PROJECT COLUMNS — horizontal scroll */
+.pcols-wrap{overflow-x:auto;padding-bottom:12px}
+.pcols{display:flex;gap:14px;align-items:flex-start;min-width:min-content}
+.pcol{flex:0 0 320px;background:var(--sf);border:1px solid var(--br);border-radius:var(--rl);overflow:hidden;min-width:280px}
+.pcolh{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--br);background:var(--pg)}
+.pcolt{font-size:13px;font-weight:500}
+.pcola{display:flex;gap:3px}
+.pca{background:none;border:none;cursor:pointer;color:var(--mu);font-size:11px;padding:2px 5px;border-radius:4px;transition:all .1s}
+.pca:hover{background:var(--acl);color:var(--acc)}
+.pcolb{padding:12px}
 
-/* CHARTS */
-.chart-wrap{position:relative;margin-top:12px}
-.chart-controls{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.chart-label-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.chart-label-row input{flex:1;font-size:12px;padding:5px 8px}
-.chart-label-row input[type=number]{width:70px;flex:none}
+/* CHART in col */
+.chrow{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.chrow input[type=text]{flex:1;font-size:12px;padding:4px 7px}
+.chrow input[type=number]{width:65px;font-size:12px;padding:4px 7px}
+.chctrl{display:flex;align-items:center;gap:6px;margin-bottom:9px;flex-wrap:wrap}
 
-/* FORMAT SELECT */
-.format-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-.format-opt{border:2px solid var(--border-med);border-radius:8px;padding:10px 8px;cursor:pointer;text-align:center;transition:all 0.12s;font-size:11px;color:var(--muted)}
-.format-opt:hover{border-color:var(--accent-mid);color:var(--accent)}
-.format-opt.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:500}
-.format-opt .ficon{font-size:18px;display:block;margin-bottom:4px}
+/* FORMAT GRID */
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:7px}
+.fo{border:2px solid var(--brm);border-radius:8px;padding:10px 9px;cursor:pointer;text-align:center;transition:all .12s;font-size:11px;color:var(--mu)}
+.fo:hover{border-color:var(--acm);color:var(--acc)}
+.fo.sel{border-color:var(--acc);background:var(--acl);color:var(--acc);font-weight:500}
+.fo .fi{font-size:17px;display:block;margin-bottom:4px}
+
+/* DOWNLOAD */
+.dl-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:7px;border:1px solid var(--brm);background:var(--sf);cursor:pointer;font-size:12px;color:var(--mu);transition:all .15s;font-family:'DM Sans',sans-serif}
+.dl-btn:hover{background:var(--acl);border-color:var(--acm);color:var(--acc)}
 
 @media(max-width:640px){
-  #sidebar{width:60px}
-  #sidebar-header h1,#sidebar-username,#sidebar-footer p,.sync-badge,.nav-section-label,.nav-item span:not(.nav-icon),.nav-act-btn,.nav-add-btn span{display:none}
-  .nav-add-btn{justify-content:center}
-  #content{padding:16px}
-  .columns-row-half,.columns-row-third{grid-template-columns:1fr}
+  #sb{width:58px}
+  #sbh h1,#sbun,#sbf p,.sbd,.nsl,.ni span:not(.nic),.nib,.nadd span,#fb-usage{display:none}
+  .nadd{justify-content:center}
+  #ct{padding:14px}
 }
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
+<div id="ls">
+  <div class="lc">
+    <div class="ll"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
     <h1>Mój Organizer</h1>
-    <p>Zaloguj się kontem Google, aby zsynchronizować dane między wszystkimi urządzeniami.</p>
-    <button class="btn-google" onclick="handleLogin()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-      Zaloguj przez Google
-    </button>
-    <div id="login-error">Błąd logowania. Sprawdź konfigurację Firebase.</div>
-    <div id="login-loading"><span class="spinner"></span> Logowanie...</div>
+    <p>Zaloguj się kontem Google, aby zsynchronizować dane między urządzeniami.</p>
+    <button class="bg" onclick="doLogin()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">Zaloguj przez Google</button>
+    <div id="le">Błąd logowania. Sprawdź konfigurację Firebase.</div>
+    <div id="ll2"><span class="sp"></span> Logowanie...</div>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app">
-  <div id="sidebar">
-    <div id="sidebar-header">
+  <div id="sb">
+    <div id="sbh">
       <h1>Mój Organizer</h1>
-      <div id="sidebar-user">
-        <img id="sidebar-avatar" src="" alt="">
-        <span id="sidebar-username"></span>
-        <button id="btn-logout" onclick="handleLogout()" title="Wyloguj">✕</button>
+      <div id="sbu">
+        <img id="sba" src="" alt="">
+        <span id="sbun"></span>
+        <button id="blo" onclick="doLogout()" title="Wyloguj">✕</button>
       </div>
     </div>
     <nav id="nav">
-      <div class="nav-section-label">Stałe</div>
-      <div class="nav-item active" data-section="plan" onclick="switchSection('plan')">
-        <span class="nav-icon">✓</span><span>Plan dnia</span>
-      </div>
-      <div class="nav-item" data-section="calendar" onclick="switchSection('calendar')">
-        <span class="nav-icon">▦</span><span>Kalendarz</span>
-      </div>
-      <div class="nav-item" data-section="journal" onclick="switchSection('journal')">
-        <span class="nav-icon">✎</span><span>Dziennik dnia</span>
-      </div>
-      <div class="nav-item" data-section="summary" onclick="switchSection('summary')">
-        <span class="nav-icon">◈</span><span>Podsumowanie</span>
-      </div>
-      <div class="nav-section-label" id="custom-tabs-label" style="display:none">Moje zakładki</div>
-      <div id="custom-nav-items"></div>
-      <div class="nav-add-btn" onclick="openNewTabModal()">
-        <span style="font-size:16px">+</span><span>Dodaj zakładkę</span>
-      </div>
+      <div class="nsl">Stałe</div>
+      <div class="ni act" data-sec="plan" onclick="goSec('plan')"><span class="nic">✓</span><span>Plan dnia</span></div>
+      <div class="ni" data-sec="calendar" onclick="goSec('calendar')"><span class="nic">▦</span><span>Kalendarz</span></div>
+      <div class="ni" data-sec="journal" onclick="goSec('journal')"><span class="nic">✎</span><span>Dziennik dnia</span></div>
+      <div class="ni" data-sec="summary" onclick="goSec('summary')"><span class="nic">◈</span><span>Podsumowanie</span></div>
+      <div class="ni" data-sec="notes" onclick="goSec('notes')"><span class="nic">📋</span><span>Notatnik</span></div>
+      <div class="ni" data-sec="projects" onclick="goSec('projects')"><span class="nic">◫</span><span>Projekty</span></div>
+      <div class="nsl" id="cnsl" style="display:none">Moje zakładki</div>
+      <div id="cni"></div>
+      <div class="nadd" onclick="openNewTabModal()"><span style="font-size:15px">+</span><span>Dodaj zakładkę</span></div>
     </nav>
-    <div id="sidebar-footer">
-      <p>Dane w Firebase</p>
-      <span class="sync-badge"><span class="sync-dot"></span>Online</span>
+    <div id="sbf">
+      <p>Firebase · dane w chmurze</p>
+      <span class="sbd"><span class="sdd"></span>Online</span>
+      <div id="fb-usage"></div>
     </div>
   </div>
 
-  <div id="main">
-    <div id="topbar">
-      <span id="topbar-title">Plan dnia</span>
-      <span id="topbar-date"></span>
+  <div id="mn">
+    <div id="tb">
+      <span id="tbt">Plan dnia</span>
+      <span id="tbd"></span>
     </div>
-    <div id="content">
+    <div id="ct">
 
       <!-- PLAN DNIA -->
-      <div id="section-plan" class="section active">
-        <div class="day-nav-bar">
-          <div><div class="day-label" id="plan-day-label"></div><div class="day-sublabel" id="plan-day-sub"></div></div>
-          <div class="day-nav-btns">
-            <button class="btn btn-ghost btn-sm" onclick="changeDay('plan',-1)">‹ Poprzedni</button>
-            <button class="btn btn-sm" onclick="goToday('plan')">Dziś</button>
-            <button class="btn btn-ghost btn-sm" onclick="changeDay('plan',1)">Następny ›</button>
+      <div id="s-plan" class="sec act">
+        <div class="dnb">
+          <div><div class="dl" id="pl-dl"></div><div class="dsl" id="pl-ds"></div></div>
+          <div class="dnn">
+            <button class="btn bgh bsm" onclick="chDay('plan',-1)">‹ Poprzedni</button>
+            <button class="btn bsm" onclick="goTd('plan')">Dziś</button>
+            <button class="btn bgh bsm" onclick="chDay('plan',1)">Następny ›</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">Zadania</span><span id="plan-progress" class="progress-tag"></span></div>
-          <div id="plan-tasks"></div>
-          <div class="add-task-row">
-            <input type="text" id="plan-new-task" placeholder="Nowe zadanie... (Enter)" style="flex:1" onkeydown="if(event.key==='Enter')addTask()">
-            <button class="btn btn-sm" onclick="addTask()">+ Dodaj</button>
+          <div class="ch"><span class="ct2">Zadania</span><span id="pl-pt" class="pt"></span></div>
+          <div id="pl-tasks"></div>
+          <div class="atr">
+            <input type="text" id="pl-ni" placeholder="Nowe zadanie... (Enter)" style="flex:1" onkeydown="if(event.key==='Enter')addTask()">
+            <button class="btn bsm" onclick="addTask()">+ Dodaj</button>
           </div>
-          <div class="save-bar">
-            <button class="btn btn-sm" onclick="savePlan()">💾 Zapisz plan</button>
-            <span id="plan-save-status" class="save-status"></span>
+          <div class="sb2">
+            <button class="btn bsm" onclick="savePlan()">💾 Zapisz plan</button>
+            <span id="pl-ss" class="ss"></span>
           </div>
         </div>
       </div>
 
       <!-- KALENDARZ -->
-      <div id="section-calendar" class="section">
-        <div class="cal-month-nav">
-          <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)">‹</button>
-          <span id="cal-month-label"></span>
-          <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)">›</button>
-          <button class="btn btn-sm" onclick="changeMonth(0)" style="margin-left:4px">Dziś</button>
+      <div id="s-calendar" class="sec">
+        <div class="cmn">
+          <button class="btn bgh bsm" onclick="chMon(-1)">‹</button>
+          <span id="cal-ml"></span>
+          <button class="btn bgh bsm" onclick="chMon(1)">›</button>
+          <button class="btn bsm" onclick="chMon(0)" style="margin-left:4px">Dziś</button>
         </div>
-        <div class="cal-grid">
-          <div class="cal-head">Pn</div><div class="cal-head">Wt</div><div class="cal-head">Śr</div>
-          <div class="cal-head">Cz</div><div class="cal-head">Pt</div><div class="cal-head">Sb</div><div class="cal-head">Nd</div>
+        <div class="cg">
+          <div class="cha">Pn</div><div class="cha">Wt</div><div class="cha">Śr</div>
+          <div class="cha">Cz</div><div class="cha">Pt</div><div class="cha">Sb</div><div class="cha">Nd</div>
         </div>
-        <div class="cal-grid" id="cal-cells"></div>
+        <div class="cg" id="cal-cells"></div>
       </div>
 
       <!-- DZIENNIK -->
-      <div id="section-journal" class="section">
-        <div class="day-nav-bar">
-          <div><div class="day-label" id="journal-day-label"></div><div class="day-sublabel" id="journal-day-sub"></div></div>
-          <div class="day-nav-btns">
-            <button class="btn btn-ghost btn-sm" onclick="changeDay('journal',-1)">‹</button>
-            <button class="btn btn-sm" onclick="goToday('journal')">Dziś</button>
-            <button class="btn btn-ghost btn-sm" onclick="changeDay('journal',1)">›</button>
+      <div id="s-journal" class="sec">
+        <div class="dnb">
+          <div><div class="dl" id="jn-dl"></div><div class="dsl" id="jn-ds"></div></div>
+          <div class="dnn">
+            <button class="btn bgh bsm" onclick="chDay('journal',-1)">‹</button>
+            <button class="btn bsm" onclick="goTd('journal')">Dziś</button>
+            <button class="btn bgh bsm" onclick="chDay('journal',1)">›</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">Nowa notatka</span></div>
-          <div id="journal-toolbar" class="rte-toolbar"></div>
-          <div id="journal-editor" contenteditable="true" data-placeholder="Napisz co się dzieje..."></div>
-          <div class="save-bar">
-            <button class="btn btn-sm" onclick="saveJournalEntry()">💾 Dodaj notatkę</button>
-            <span id="journal-save-status" class="save-status"></span>
+          <div class="ch"><span class="ct2">Nowa notatka</span></div>
+          <div id="jn-tb" class="rtb"></div>
+          <div id="jn-ed" contenteditable="true" data-placeholder="Napisz co się dzieje..." onfocus="A='jn-ed'"></div>
+          <div class="sb2">
+            <button class="btn bsm" onclick="saveJnEntry()">💾 Dodaj notatkę</button>
+            <span id="jn-ss" class="ss"></span>
           </div>
         </div>
-        <div id="journal-entries"></div>
+        <div id="jn-list"></div>
       </div>
 
       <!-- PODSUMOWANIE -->
-      <div id="section-summary" class="section">
-        <div class="day-nav-bar">
-          <div><div class="day-label" id="summary-day-label"></div><div class="day-sublabel" id="summary-day-sub"></div></div>
-          <div class="day-nav-btns">
-            <button class="btn btn-ghost btn-sm" onclick="changeDay('summary',-1)">‹</button>
-            <button class="btn btn-sm" onclick="goToday('summary')">Dziś</button>
-            <button class="btn btn-ghost btn-sm" onclick="changeDay('summary',1)">›</button>
+      <div id="s-summary" class="sec">
+        <div class="dnb">
+          <div><div class="dl" id="su-dl"></div><div class="dsl" id="su-ds"></div></div>
+          <div class="dnn">
+            <button class="btn bgh bsm" onclick="chDay('summary',-1)">‹</button>
+            <button class="btn bsm" onclick="goTd('summary')">Dziś</button>
+            <button class="btn bgh bsm" onclick="chDay('summary',1)">›</button>
           </div>
         </div>
         <div class="card">
-          <div class="card-header">
-            <span class="card-title">Podsumowanie dnia</span>
-            <button class="btn btn-ghost btn-sm" id="summary-toggle-btn" onclick="toggleSummaryEdit()">Edytuj</button>
+          <div class="ch">
+            <span class="ct2">Podsumowanie dnia</span>
+            <button class="btn bgh bsm" id="su-tb" onclick="togSuEdit()">Edytuj</button>
           </div>
-          <div id="summary-view"></div>
-          <div id="summary-edit-area" style="display:none">
-            <div id="summary-toolbar" class="rte-toolbar"></div>
-            <div id="summary-editor" contenteditable="true" data-placeholder="Jak minął dzień?..."></div>
-            <div class="save-bar">
-              <button class="btn btn-sm" onclick="saveSummary()">💾 Zapisz</button>
-              <button class="btn btn-ghost btn-sm" onclick="cancelSummaryEdit()">Anuluj</button>
-              <span id="summary-save-status" class="save-status"></span>
+          <div id="su-view"></div>
+          <div id="su-ea" style="display:none">
+            <div id="su-rtb" class="rtb"></div>
+            <div id="su-ed" contenteditable="true" data-placeholder="Jak minął dzień?..." onfocus="A='su-ed'"></div>
+            <div class="sb2">
+              <button class="btn bsm" onclick="saveSu()">💾 Zapisz</button>
+              <button class="btn bgh bsm" onclick="canSuEdit()">Anuluj</button>
+              <span id="su-ss" class="ss"></span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- PROJEKTY (stała zakładka) -->
-      <div id="section-projects" class="section">
-        <div id="projects-list-view">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-            <div class="day-label">Projekty</div>
-            <button class="btn btn-sm" onclick="openNewProjectModal()">+ Nowy projekt</button>
-          </div>
-          <div id="projects-grid" class="projects-list"></div>
+      <!-- NOTATNIK -->
+      <div id="s-notes" class="sec">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+          <div class="dl">Notatnik</div>
+          <button class="btn bsm" onclick="openNewNoteModal()">+ Nowa notatka</button>
         </div>
-        <div id="project-detail-view" class="project-detail"></div>
+        <div id="notes-list"></div>
       </div>
 
-      <!-- NIESTANDARDOWE ZAKŁADKI -->
-      <div id="section-custom" class="section"></div>
+      <!-- PROJEKTY -->
+      <div id="s-projects" class="sec">
+        <div id="plist-view">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+            <div class="dl">Projekty</div>
+            <button class="btn bsm" onclick="openNewProjModal()">+ Nowy projekt</button>
+          </div>
+          <div id="proj-grid" class="plist"></div>
+        </div>
+        <div id="proj-detail" style="display:none"></div>
+      </div>
+
+      <!-- CUSTOM TAB -->
+      <div id="s-custom" class="sec"></div>
 
     </div>
   </div>
 </div>
-<div id="modal-root"></div>
+<div id="mr"></div>
 
 <script>
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+// ── CONSTS ────────────────────────────────────────────────────────────────────
 const DAYS=['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
-const MONTHS=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
-const MONTHS_GEN=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
-const TAB_FORMATS=[
-  {id:'notes',label:'Notatnik',icon:'✎',desc:'Wolny tekst z formatowaniem'},
-  {id:'plan',label:'Lista zadań',icon:'✓',desc:'Zadania do odhaczenia'},
-  {id:'projects',label:'Projekty',icon:'◫',desc:'Kolumny + postęp'},
-  {id:'journal',label:'Dziennik',icon:'◷',desc:'Notatki z datą'},
+const MON=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const MONG=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+const COLORS=['#1e5c41','#c0392b','#2471a3','#d35400','#7d3c98','#117a65','#b7950b','#566573'];
+const TAB_FMTS=[
+  {id:'notes',lbl:'Notatnik',ic:'📋',desc:'Wiele notatek z edycją'},
+  {id:'plan',lbl:'Lista zadań',ic:'✓',desc:'Zadania do odhaczenia'},
+  {id:'journal',lbl:'Dziennik',ic:'✎',desc:'Wpisy z datą i godziną'},
 ];
-const COLORS=['#1e5c41','#c0392b','#2471a3','#d35400','#7d3c98','#117a65','#1a252f','#566573'];
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-let currentUser=null;
-const st={
-  plan:{date:todayDate()},journal:{date:todayDate()},summary:{date:todayDate()},
-  cal:{year:todayDate().getFullYear(),month:todayDate().getMonth()},
-  customTabs:[],currentCustomTab:null,
-  projects:[],currentProject:null
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let U=null,A=''; // current user, active RTE editor id
+const S={
+  plan:{date:td()},journal:{date:td()},summary:{date:td()},
+  cal:{year:td().getFullYear(),month:td().getMonth()},
+  tabs:[],projects:[],curProj:null,curTabId:null
 };
+// in-memory caches
+let planTasks=[],journalEntries=[],summaryHtml='',calCache={};
+let allNotes=[],allProjects=[],allTabs=[];
+let projData={}; // {columns,stages} for current project
+let chartInst={}; // Chart.js instances by col index
 
-function todayDate(){return new Date(new Date().setHours(0,0,0,0))}
-function fmtDate(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
-function pad(n){return String(n).padStart(2,'0')}
-function fmtFull(d){return DAYS[d.getDay()]+', '+d.getDate()+' '+MONTHS_GEN[d.getMonth()]+' '+d.getFullYear()}
-function fmtNow(){const n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes())}
-function uid(){return currentUser?.uid}
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function td(){return new Date(new Date().setHours(0,0,0,0))}
+function fd(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function p2(n){return String(n).padStart(2,'0')}
+function fdf(d){return DAYS[d.getDay()]+', '+d.getDate()+' '+MONG[d.getMonth()]+' '+d.getFullYear()}
+function now2(){const n=new Date();return p2(n.getHours())+':'+p2(n.getMinutes())}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function uid(){return U?.uid}
 
-// ─── FIREBASE ─────────────────────────────────────────────────────────────────
-function fDoc(col,id){const{db,doc}=window._fb;return doc(db,'users',uid(),col,id)}
-async function fbGet(col,id){
-  try{const s=await window._fb.getDoc(fDoc(col,id));return s.exists()?s.data():null}
-  catch(e){console.warn(e);return null}
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+function fdoc(col,id){const{db,doc}=window._fb;return doc(db,'users',uid(),col,id)}
+async function fg(col,id){
+  try{const s=await window._fb.getDoc(fdoc(col,id));return s.exists()?s.data():null}catch{return null}
 }
-async function fbSet(col,id,data){
-  try{await window._fb.setDoc(fDoc(col,id),data)}catch(e){console.warn(e)}
-}
-async function fbDel(col,id){
-  try{await window._fb.deleteDoc(fDoc(col,id))}catch(e){console.warn(e)}
+async function fs(col,id,data){try{await window._fb.setDoc(fdoc(col,id),data)}catch(e){console.warn(e)}}
+async function fdel(col,id){try{await window._fb.deleteDoc(fdoc(col,id))}catch(e){console.warn(e)}}
+
+// usage counter (approximate)
+let writeCount=0,readCount=0;
+async function fg2(col,id){readCount++;updateUsage();return fg(col,id)}
+async function fs2(col,id,data){writeCount++;updateUsage();return fs(col,id,data)}
+function updateUsage(){
+  const el=document.getElementById('fb-usage');
+  if(el)el.textContent=`Odczyty: ~${readCount} | Zapisy: ~${writeCount}`;
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
-function handleLogin(){
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function doLogin(){
   const{auth,provider,signInWithPopup}=window._fb;
-  document.getElementById('login-loading').style.display='block';
-  document.getElementById('login-error').style.display='none';
+  document.getElementById('ll2').style.display='block';
+  document.getElementById('le').style.display='none';
   signInWithPopup(auth,provider).catch(()=>{
-    document.getElementById('login-loading').style.display='none';
-    document.getElementById('login-error').style.display='block';
+    document.getElementById('ll2').style.display='none';
+    document.getElementById('le').style.display='block';
   });
 }
-function handleLogout(){window._fb.signOut(window._fb.auth)}
+function doLogout(){window._fb.signOut(window._fb.auth)}
 
 window.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('topbar-date').textContent=fmtFull(new Date());
+  document.getElementById('tbd').textContent=fdf(new Date());
   const{auth,onAuthStateChanged}=window._fb;
   onAuthStateChanged(auth,user=>{
-    currentUser=user;
+    U=user;
     if(user){
-      document.getElementById('login-screen').style.display='none';
-      document.getElementById('app').classList.add('visible');
-      document.getElementById('sidebar-avatar').src=user.photoURL||'';
-      document.getElementById('sidebar-username').textContent=user.displayName||user.email;
-      initApp();
+      document.getElementById('ls').style.display='none';
+      document.getElementById('app').classList.add('v');
+      document.getElementById('sba').src=user.photoURL||'';
+      document.getElementById('sbun').textContent=user.displayName||user.email;
+      init();
     }else{
-      document.getElementById('login-screen').style.display='flex';
-      document.getElementById('app').classList.remove('visible');
-      document.getElementById('login-loading').style.display='none';
+      document.getElementById('ls').style.display='flex';
+      document.getElementById('app').classList.remove('v');
+      document.getElementById('ll2').style.display='none';
     }
   });
 });
 
-async function initApp(){
-  await loadCustomTabs();
-  await loadProjects();
-  initRTE('journal-toolbar','journal-editor');
-  initRTE('summary-toolbar','summary-editor');
+async function init(){
+  await loadTabs();
+  await loadProjectsMeta();
+  await loadNotes();
+  initRTE('jn-tb','jn-ed');
+  initRTE('su-rtb','su-ed');
   renderPlan();
   renderCal();
 }
 
-// ─── STATUS ───────────────────────────────────────────────────────────────────
-function setStatus(id,msg,isLoading){
-  const el=document.getElementById(id);if(!el)return;
-  el.innerHTML=isLoading?`<span class="spinner"></span> ${msg}`:msg;
-  if(!isLoading)setTimeout(()=>{if(el)el.textContent=''},3000);
-}
-
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
-function switchSection(s,label){
-  document.querySelectorAll('.section').forEach(e=>e.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
-  const sec=document.getElementById('section-'+s)||document.getElementById('section-custom');
-  if(sec)sec.classList.add('active');
-  const nav=document.querySelector(`[data-section="${s}"]`);
-  if(nav)nav.classList.add('active');
-  const titles={plan:'Plan dnia',calendar:'Kalendarz',journal:'Dziennik dnia',summary:'Podsumowanie dnia',projects:'Projekty'};
-  document.getElementById('topbar-title').textContent=label||titles[s]||s;
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const TITLES={plan:'Plan dnia',calendar:'Kalendarz',journal:'Dziennik dnia',summary:'Podsumowanie dnia',notes:'Notatnik',projects:'Projekty'};
+function goSec(s,lbl){
+  document.querySelectorAll('.sec').forEach(e=>e.classList.remove('act'));
+  document.querySelectorAll('.ni').forEach(e=>e.classList.remove('act'));
+  const sec=document.getElementById('s-'+s)||document.getElementById('s-custom');
+  if(sec)sec.classList.add('act');
+  const ni=document.querySelector(`[data-sec="${s}"]`);
+  if(ni)ni.classList.add('act');
+  document.getElementById('tbt').textContent=lbl||TITLES[s]||s;
   if(s==='plan')renderPlan();
   else if(s==='calendar')renderCal();
   else if(s==='journal')renderJournal();
   else if(s==='summary')renderSummary();
-  else if(s==='projects')renderProjectsList();
-  else if(s.startsWith('custom_'))renderCustomTab(s);
+  else if(s==='notes')renderNotes();
+  else if(s==='projects')renderProjList();
+  else if(s.startsWith('ct_'))renderCustomTab(s);
 }
-function changeDay(sec,d){
-  const dt=new Date(st[sec].date);dt.setDate(dt.getDate()+d);st[sec].date=dt;
-  if(sec==='plan')renderPlan();if(sec==='journal')renderJournal();if(sec==='summary')renderSummary();
+function chDay(sec,d){
+  const dt=new Date(S[sec].date);dt.setDate(dt.getDate()+d);S[sec].date=dt;
+  if(sec==='plan')renderPlan();
+  else if(sec==='journal')renderJournal();
+  else if(sec==='summary')renderSummary();
 }
-function goToday(sec){
-  st[sec].date=todayDate();
-  if(sec==='plan')renderPlan();if(sec==='journal')renderJournal();if(sec==='summary')renderSummary();
+function goTd(sec){
+  S[sec].date=td();
+  if(sec==='plan')renderPlan();
+  else if(sec==='journal')renderJournal();
+  else if(sec==='summary')renderSummary();
 }
 
-// ─── RICH TEXT EDITOR ─────────────────────────────────────────────────────────
-function initRTE(toolbarId,editorId){
-  const tb=document.getElementById(toolbarId);
-  if(!tb)return;
+// ── STATUS ────────────────────────────────────────────────────────────────────
+function setSt(id,msg,loading){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=loading?`<span class="sp"></span> ${msg}`:msg;
+  if(!loading)setTimeout(()=>{if(el)el.textContent=''},3000);
+}
+
+// ── RTE ───────────────────────────────────────────────────────────────────────
+function initRTE(tbId,edId){
+  const tb=document.getElementById(tbId);if(!tb)return;
   tb.innerHTML=`
-    <button class="rte-btn" title="Pogrubienie" onmousedown="e=>{e.preventDefault();document.execCommand('bold')}" onclick="rteCmd('bold',this)"><b>B</b></button>
-    <button class="rte-btn" title="Kursywa" onclick="rteCmd('italic',this)"><i>I</i></button>
-    <button class="rte-btn" title="Podkreślenie" onclick="rteCmd('underline',this)"><u>U</u></button>
-    <div class="rte-sep"></div>
-    <select class="rte-size-select" onchange="rteSize(this.value)" title="Rozmiar czcionki">
-      <option value="2">Mały</option>
-      <option value="3" selected>Normalny</option>
-      <option value="4">Duży</option>
-      <option value="5">Bardzo duży</option>
+    <button class="rb" title="Pogrubienie" onclick="rc('bold')"><b>B</b></button>
+    <button class="rb" title="Kursywa" onclick="rc('italic')"><i>I</i></button>
+    <button class="rb" title="Podkreślenie" onclick="rc('underline')"><u>U</u></button>
+    <div class="rs"></div>
+    <select class="rss" onchange="rsize(this.value)" title="Rozmiar">
+      <option value="2">Mały</option><option value="3" selected>Normalny</option>
+      <option value="4">Duży</option><option value="5">B. duży</option>
     </select>
-    <div class="rte-sep"></div>
-    ${COLORS.map(c=>`<div class="rte-color-btn" style="background:${c}" title="${c}" onclick="rteColor('${c}')"></div>`).join('')}
-    <div class="rte-sep"></div>
-    <button class="rte-btn" title="Lista punktowana" onclick="rteCmd('insertUnorderedList',this)">• Lista</button>
-    <button class="rte-btn" title="Lista numerowana" onclick="rteCmd('insertOrderedList',this)">1. Lista</button>
-    <div class="rte-sep"></div>
-    <button class="rte-btn" title="Wyczyść formatowanie" onclick="rteCmd('removeFormat',this)">✕ fmt</button>`;
-  // Bind editor focus for execCommand context
-  const ed=document.getElementById(editorId);
-  if(ed)ed.addEventListener('focus',()=>window._rteActive=editorId);
+    <div class="rs"></div>
+    ${COLORS.map(c=>`<div class="rcb" style="background:${c}" onclick="rcol('${c}')" title="${c}"></div>`).join('')}
+    <div class="rs"></div>
+    <button class="rb" onclick="rc('insertUnorderedList')">• Lista</button>
+    <button class="rb" onclick="rc('insertOrderedList')">1. Lista</button>
+    <div class="rs"></div>
+    <button class="rb" onclick="rc('removeFormat')" title="Wyczyść">✕fmt</button>`;
+  const ed=document.getElementById(edId);
+  if(ed)ed.addEventListener('focus',()=>A=edId);
 }
-function rteCmd(cmd,btn){
-  const ed=document.getElementById(window._rteActive||'');
-  if(ed)ed.focus();
-  document.execCommand(cmd,false,null);
-}
-function rteSize(v){
-  const ed=document.getElementById(window._rteActive||'');
-  if(ed)ed.focus();
-  document.execCommand('fontSize',false,v);
-}
-function rteColor(c){
-  const ed=document.getElementById(window._rteActive||'');
-  if(ed)ed.focus();
-  document.execCommand('foreColor',false,c);
-}
+function rc(cmd){const ed=document.getElementById(A);if(ed)ed.focus();document.execCommand(cmd,false,null)}
+function rsize(v){const ed=document.getElementById(A);if(ed)ed.focus();document.execCommand('fontSize',false,v)}
+function rcol(c){const ed=document.getElementById(A);if(ed)ed.focus();document.execCommand('foreColor',false,c)}
 
-// ─── PLAN DNIA ────────────────────────────────────────────────────────────────
-let planTasks=[];
+// ── PLAN DNIA ─────────────────────────────────────────────────────────────────
 async function renderPlan(){
-  const d=st.plan.date,key=fmtDate(d);
-  document.getElementById('plan-day-label').textContent=DAYS[d.getDay()];
-  document.getElementById('plan-day-sub').textContent=d.getDate()+' '+MONTHS_GEN[d.getMonth()]+' '+d.getFullYear();
-  setStatus('plan-save-status','Wczytywanie...',true);
-  const data=await fbGet('plans',key);
+  const d=S.plan.date,k=fd(d);
+  document.getElementById('pl-dl').textContent=DAYS[d.getDay()];
+  document.getElementById('pl-ds').textContent=d.getDate()+' '+MONG[d.getMonth()]+' '+d.getFullYear();
+  setSt('pl-ss','Wczytywanie...',true);
+  const data=await fg2('plans',k);
   planTasks=data?.tasks||[];
-  setStatus('plan-save-status','');
+  setSt('pl-ss','');
   renderPlanTasks();
 }
 function renderPlanTasks(){
-  const done=planTasks.filter(t=>t.done).length;
-  document.getElementById('plan-progress').textContent=planTasks.length?`${done}/${planTasks.length} zrobione`:'Brak zadań';
-  const cont=document.getElementById('plan-tasks');
-  if(!planTasks.length){cont.innerHTML='<div class="empty-state"><p>Brak zadań. Dodaj pierwsze!</p></div>';return}
-  cont.innerHTML=planTasks.map((t,i)=>`
-    <div class="task-row">
-      <input type="checkbox" class="task-check" ${t.done?'checked':''} onchange="toggleTask(${i})">
-      <span class="task-text ${t.done?'done':''}">${escHtml(t.text)}</span>
-      <button class="task-del" onclick="deleteTask(${i})">✕</button>
+  const dn=planTasks.filter(t=>t.done).length;
+  document.getElementById('pl-pt').textContent=planTasks.length?`${dn}/${planTasks.length} zrobione`:'Brak zadań';
+  const el=document.getElementById('pl-tasks');
+  if(!planTasks.length){el.innerHTML='<div class="es"><p>Brak zadań. Dodaj pierwsze!</p></div>';return}
+  el.innerHTML=planTasks.map((t,i)=>`
+    <div class="tr">
+      <input type="checkbox" class="tc" ${t.done?'checked':''} onchange="togTask(${i})">
+      <span class="tt ${t.done?'dn':''}">${esc(t.text)}</span>
+      <button class="td" onclick="delTask(${i})">✕</button>
     </div>`).join('');
 }
-function addTask(){const inp=document.getElementById('plan-new-task'),val=inp.value.trim();if(!val)return;planTasks.push({text:val,done:false});inp.value='';renderPlanTasks()}
-function toggleTask(i){planTasks[i].done=!planTasks[i].done;renderPlanTasks()}
-function deleteTask(i){planTasks.splice(i,1);renderPlanTasks()}
+function addTask(){const i=document.getElementById('pl-ni'),v=i.value.trim();if(!v)return;planTasks.push({text:v,done:false});i.value='';renderPlanTasks()}
+function togTask(i){planTasks[i].done=!planTasks[i].done;renderPlanTasks()}
+function delTask(i){planTasks.splice(i,1);renderPlanTasks()}
 async function savePlan(){
-  const key=fmtDate(st.plan.date);
-  setStatus('plan-save-status','Zapisywanie...',true);
-  await fbSet('plans',key,{tasks:planTasks,updated:new Date().toISOString()});
-  setStatus('plan-save-status','Zapisano ✓');
+  setSt('pl-ss','Zapisywanie...',true);
+  await fs2('plans',fd(S.plan.date),{tasks:planTasks,updated:new Date().toISOString()});
+  setSt('pl-ss','Zapisano ✓');
 }
 
-// ─── KALENDARZ ────────────────────────────────────────────────────────────────
-let calEventsCache={};
+// ── KALENDARZ ─────────────────────────────────────────────────────────────────
 async function renderCal(){
-  const{year,month}=st.cal;
-  document.getElementById('cal-month-label').textContent=MONTHS[month]+' '+year;
+  const{year,month}=S.cal;
+  document.getElementById('cal-ml').textContent=MON[month]+' '+year;
   const days=new Date(year,month+1,0).getDate();
   await Promise.all(Array.from({length:days},(_,i)=>{
-    const key=fmtDate(new Date(year,month,i+1));
-    return fbGet('events',key).then(d=>{calEventsCache[key]=d?.items||[]});
+    const k=fd(new Date(year,month,i+1));
+    return fg2('events',k).then(d=>{calCache[k]=d?.items||[]});
   }));
   renderCalCells();
 }
 function renderCalCells(){
-  const{year,month}=st.cal;
-  const first=new Date(year,month,1);
-  let startDow=first.getDay();if(startDow===0)startDow=7;
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const prevDays=new Date(year,month,0).getDate();
-  const todayKey=fmtDate(todayDate());
-  let html='',day=1,next=1;
+  const{year,month}=S.cal;
+  let sd=new Date(year,month,1).getDay();if(sd===0)sd=7;
+  const dim=new Date(year,month+1,0).getDate(),pd=new Date(year,month,0).getDate();
+  const tk=fd(td());let html='',dy=1,nx=1;
   for(let i=0;i<42;i++){
-    let key,label,cls='cal-cell';
-    if(i<startDow-1){key=fmtDate(new Date(year,month-1,prevDays-(startDow-2-i)));label=prevDays-(startDow-2-i);cls+=' other-month'}
-    else if(day<=daysInMonth){key=fmtDate(new Date(year,month,day));label=day;if(key===todayKey)cls+=' today';if((calEventsCache[key]||[]).length)cls+=' has-event';day++}
-    else{key=fmtDate(new Date(year,month+1,next));label=next;cls+=' other-month';next++}
-    const evs=(calEventsCache[key]||[]).slice(0,3);
-    html+=`<div class="${cls}" onclick="openCalModal('${key}')"><div class="cal-day-num">${label}</div>${evs.map(e=>`<div class="cal-event">${e.time?e.time+' ':''} ${escHtml(e.title)}</div>`).join('')}</div>`;
+    let k,lb,cl='cc';
+    if(i<sd-1){k=fd(new Date(year,month-1,pd-(sd-2-i)));lb=pd-(sd-2-i);cl+=' om'}
+    else if(dy<=dim){k=fd(new Date(year,month,dy));lb=dy;if(k===tk)cl+=' td2';if((calCache[k]||[]).length)cl+=' he';dy++}
+    else{k=fd(new Date(year,month+1,nx));lb=nx;cl+=' om';nx++}
+    const evs=(calCache[k]||[]).slice(0,3);
+    html+=`<div class="${cl}" onclick="openCalMod('${k}')"><div class="cdn">${lb}</div>${evs.map(e=>`<div class="ce">${e.time?e.time+' ':''} ${esc(e.title)}</div>`).join('')}</div>`;
   }
   document.getElementById('cal-cells').innerHTML=html;
 }
-function changeMonth(d){
-  if(d===0){st.cal.year=todayDate().getFullYear();st.cal.month=todayDate().getMonth()}
-  else{st.cal.month+=d;if(st.cal.month>11){st.cal.month=0;st.cal.year++}if(st.cal.month<0){st.cal.month=11;st.cal.year--}}
+function chMon(d){
+  if(d===0){S.cal.year=td().getFullYear();S.cal.month=td().getMonth()}
+  else{S.cal.month+=d;if(S.cal.month>11){S.cal.month=0;S.cal.year++}if(S.cal.month<0){S.cal.month=11;S.cal.year--}}
   renderCal();
 }
-async function openCalModal(dateKey){
-  const data=await fbGet('events',dateKey);
-  calEventsCache[dateKey]=data?.items||[];
-  const evs=calEventsCache[dateKey];
-  const dt=new Date(dateKey+'T12:00:00');
-  const label=dt.getDate()+' '+MONTHS_GEN[dt.getMonth()]+' '+dt.getFullYear();
-  document.getElementById('modal-root').innerHTML=`
-  <div class="modal-backdrop" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
-      <h3>${label}</h3>
-      <div style="margin-bottom:12px">${evs.length?evs.map((e,i)=>`
-        <div class="modal-event-item">
-          <span>${e.time?`<span class="ev-time-badge">${e.time}</span>`:''} ${escHtml(e.title)}</span>
-          <button class="task-del" onclick="deleteCalEvent('${dateKey}',${i})">✕</button>
-        </div>`).join(''):'<p style="font-size:12px;color:var(--muted)">Brak wydarzeń</p>'}</div>
-      <div class="modal-row"><label>Tytuł</label><input type="text" id="ev-title" placeholder="Spotkanie, termin..."></div>
-      <div class="modal-row"><label>Godzina (opcjonalnie)</label><input type="time" id="ev-time"></div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Zamknij</button>
-        <button class="btn btn-sm" onclick="addCalEvent('${dateKey}')">+ Dodaj</button>
+async function openCalMod(k){
+  const data=await fg2('events',k);calCache[k]=data?.items||[];
+  const evs=calCache[k],dt=new Date(k+'T12:00:00');
+  const lb=dt.getDate()+' '+MONG[dt.getMonth()]+' '+dt.getFullYear();
+  document.getElementById('mr').innerHTML=`
+  <div class="mb" onclick="if(event.target===this)closeMod()">
+    <div class="mo">
+      <h3>${lb}</h3>
+      <div style="margin-bottom:11px">${evs.length?evs.map((e,i)=>`
+        <div class="mei"><span>${e.time?`<span class="etb">${e.time}</span>`:''} ${esc(e.title)}</span>
+        <button class="td" onclick="delCalEv('${k}',${i})">✕</button></div>`).join('')
+        :'<p style="font-size:12px;color:var(--mu)">Brak wydarzeń</p>'}</div>
+      <div class="mr"><label>Tytuł</label><input type="text" id="ev-t" placeholder="Spotkanie, termin..."></div>
+      <div class="mr"><label>Godzina (opcjonalnie)</label><input type="time" id="ev-h"></div>
+      <div class="mf">
+        <button class="btn bgh bsm" onclick="closeMod()">Zamknij</button>
+        <button class="btn bsm" onclick="addCalEv('${k}')">+ Dodaj</button>
       </div>
     </div>
   </div>`;
 }
-async function addCalEvent(dateKey){
-  const title=document.getElementById('ev-title').value.trim();if(!title)return;
-  const time=document.getElementById('ev-time').value;
-  const evs=calEventsCache[dateKey]||[];
-  evs.push({title,time});evs.sort((a,b)=>a.time.localeCompare(b.time));
-  calEventsCache[dateKey]=evs;
-  await fbSet('events',dateKey,{items:evs,updated:new Date().toISOString()});
-  closeModal();renderCalCells();
+async function addCalEv(k){
+  const t=document.getElementById('ev-t').value.trim();if(!t)return;
+  const h=document.getElementById('ev-h').value;
+  const evs=calCache[k]||[];evs.push({title:t,time:h});evs.sort((a,b)=>a.time.localeCompare(b.time));
+  calCache[k]=evs;await fs2('events',k,{items:evs,updated:new Date().toISOString()});
+  closeMod();renderCalCells();
 }
-async function deleteCalEvent(dateKey,i){
-  calEventsCache[dateKey].splice(i,1);
-  await fbSet('events',dateKey,{items:calEventsCache[dateKey],updated:new Date().toISOString()});
-  closeModal();renderCalCells();
+async function delCalEv(k,i){
+  calCache[k].splice(i,1);
+  await fs2('events',k,{items:calCache[k],updated:new Date().toISOString()});
+  closeMod();renderCalCells();
 }
-function closeModal(){document.getElementById('modal-root').innerHTML=''}
+function closeMod(){document.getElementById('mr').innerHTML=''}
 
-// ─── DZIENNIK ─────────────────────────────────────────────────────────────────
-let journalEntries=[];
+// ── DZIENNIK ──────────────────────────────────────────────────────────────────
 async function renderJournal(){
-  const d=st.journal.date,key=fmtDate(d);
-  document.getElementById('journal-day-label').textContent=DAYS[d.getDay()];
-  document.getElementById('journal-day-sub').textContent=d.getDate()+' '+MONTHS_GEN[d.getMonth()]+' '+d.getFullYear();
-  setStatus('journal-save-status','Wczytywanie...',true);
-  const data=await fbGet('journal',key);
-  journalEntries=data?.entries||[];
-  setStatus('journal-save-status','');
-  renderJournalEntries();
-  document.getElementById('journal-editor').innerHTML='';
+  const d=S.journal.date,k=fd(d);
+  document.getElementById('jn-dl').textContent=DAYS[d.getDay()];
+  document.getElementById('jn-ds').textContent=d.getDate()+' '+MONG[d.getMonth()]+' '+d.getFullYear();
+  setSt('jn-ss','Wczytywanie...',true);
+  const data=await fg2('journal',k);
+  journalEntries=data?.entries||[];setSt('jn-ss','');
+  document.getElementById('jn-ed').innerHTML='';
+  renderJnList();
 }
-function renderJournalEntries(){
-  const cont=document.getElementById('journal-entries');
-  if(!journalEntries.length){cont.innerHTML='<div class="empty-state"><p>Brak notatek na ten dzień.</p></div>';return}
-  cont.innerHTML=journalEntries.map((e,i)=>`
-    <div class="entry-card">
-      <div class="entry-card-header">
-        <span class="entry-time">${e.time}</span>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="startEditJournal(${i})">Edytuj</button>
-          <button class="task-del" onclick="deleteJournalEntry(${i})">✕</button>
+function renderJnList(){
+  const el=document.getElementById('jn-list');
+  if(!journalEntries.length){el.innerHTML='<div class="es"><p>Brak notatek na ten dzień.</p></div>';return}
+  el.innerHTML=journalEntries.map((e,i)=>`
+    <div class="ec">
+      <div class="ech">
+        <span class="et">${e.time}</span>
+        <div style="display:flex;gap:5px">
+          <button class="btn bgh bsm" onclick="startEditJn(${i})">Edytuj</button>
+          <button class="td" onclick="delJnEntry(${i})">✕</button>
+          <button class="dl-btn" onclick="dlContent('${esc(e.time)}',\`${e.html||''}\`)">⬇ Pobierz</button>
         </div>
       </div>
-      <div class="entry-body" id="jview-${i}">${e.html||escHtml(e.text||'')}</div>
-      <div id="jedit-${i}" style="display:none">
-        <div class="rte-toolbar" id="jtb-${i}"></div>
-        <div contenteditable="true" id="jed-${i}" style="min-height:60px;padding:10px;border:1px solid var(--border-med);border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="window._rteActive='jed-${i}'">${e.html||escHtml(e.text||'')}</div>
-        <div class="save-bar">
-          <button class="btn btn-sm" onclick="saveJournalEdit(${i})">Zapisz</button>
-          <button class="btn btn-ghost btn-sm" onclick="cancelJournalEdit(${i})">Anuluj</button>
+      <div class="eb" id="jv-${i}">${e.html||esc(e.text||'')}</div>
+      <div id="je-${i}" style="display:none">
+        <div class="rtb" id="jt-${i}"></div>
+        <div contenteditable="true" id="jed-${i}" style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='jed-${i}'">${e.html||esc(e.text||'')}</div>
+        <div class="sb2">
+          <button class="btn bsm" onclick="saveJnEdit(${i})">Zapisz</button>
+          <button class="btn bgh bsm" onclick="canJnEdit(${i})">Anuluj</button>
         </div>
       </div>
     </div>`).join('');
-  journalEntries.forEach((_,i)=>initRTE('jtb-'+i,'jed-'+i));
+  journalEntries.forEach((_,i)=>initRTE('jt-'+i,'jed-'+i));
 }
-async function saveJournalEntry(){
-  const ed=document.getElementById('journal-editor');
-  const html=ed.innerHTML.trim();
+async function saveJnEntry(){
+  const ed=document.getElementById('jn-ed'),html=ed.innerHTML.trim();
   if(!html||html==='<br>')return;
-  const key=fmtDate(st.journal.date);
-  journalEntries.push({html,time:fmtNow()});
-  setStatus('journal-save-status','Zapisywanie...',true);
-  await fbSet('journal',key,{entries:journalEntries});
-  ed.innerHTML='';
-  setStatus('journal-save-status','Notatka dodana ✓');
-  renderJournalEntries();
+  const k=fd(S.journal.date);
+  journalEntries.push({html,time:now2()});
+  setSt('jn-ss','Zapisywanie...',true);
+  await fs2('journal',k,{entries:journalEntries});
+  ed.innerHTML='';setSt('jn-ss','Notatka dodana ✓');renderJnList();
 }
-function startEditJournal(i){document.getElementById('jview-'+i).style.display='none';document.getElementById('jedit-'+i).style.display='block'}
-function cancelJournalEdit(i){document.getElementById('jview-'+i).style.display='block';document.getElementById('jedit-'+i).style.display='none'}
-async function saveJournalEdit(i){
+function startEditJn(i){document.getElementById('jv-'+i).style.display='none';document.getElementById('je-'+i).style.display='block'}
+function canJnEdit(i){document.getElementById('jv-'+i).style.display='block';document.getElementById('je-'+i).style.display='none'}
+async function saveJnEdit(i){
   const html=document.getElementById('jed-'+i).innerHTML;
   journalEntries[i].html=html;
-  const key=fmtDate(st.journal.date);
-  await fbSet('journal',key,{entries:journalEntries});
-  renderJournalEntries();
+  await fs2('journal',fd(S.journal.date),{entries:journalEntries});
+  renderJnList();
 }
-async function deleteJournalEntry(i){
+async function delJnEntry(i){
   if(!confirm('Usunąć tę notatkę?'))return;
   journalEntries.splice(i,1);
-  await fbSet('journal',fmtDate(st.journal.date),{entries:journalEntries});
-  renderJournalEntries();
+  await fs2('journal',fd(S.journal.date),{entries:journalEntries});
+  renderJnList();
 }
 
-// ─── PODSUMOWANIE ─────────────────────────────────────────────────────────────
-let summaryHtml='';
+// ── PODSUMOWANIE ──────────────────────────────────────────────────────────────
 async function renderSummary(){
-  const d=st.summary.date,key=fmtDate(d);
-  document.getElementById('summary-day-label').textContent=DAYS[d.getDay()];
-  document.getElementById('summary-day-sub').textContent=d.getDate()+' '+MONTHS_GEN[d.getMonth()]+' '+d.getFullYear();
-  const data=await fbGet('summary',key);
+  const d=S.summary.date,k=fd(d);
+  document.getElementById('su-dl').textContent=DAYS[d.getDay()];
+  document.getElementById('su-ds').textContent=d.getDate()+' '+MONG[d.getMonth()]+' '+d.getFullYear();
+  const data=await fg2('summary',k);
   summaryHtml=data?.html||data?.text||'';
-  showSummaryView();
+  showSuView();
 }
-function showSummaryView(){
-  const view=document.getElementById('summary-view');
-  document.getElementById('summary-edit-area').style.display='none';
-  document.getElementById('summary-toggle-btn').textContent='Edytuj';
-  view.innerHTML=summaryHtml?`<div class="entry-body">${summaryHtml}</div>`:`<div class="empty-state"><p>Brak podsumowania. Kliknij "Edytuj".</p></div>`;
-  view.style.display='block';
+function showSuView(){
+  const v=document.getElementById('su-view');
+  document.getElementById('su-ea').style.display='none';
+  document.getElementById('su-tb').textContent='Edytuj';
+  v.innerHTML=summaryHtml?`<div class="eb">${summaryHtml}</div><div style="margin-top:8px"><button class="dl-btn" onclick="dlContent('Podsumowanie_${fd(S.summary.date)}',\`${summaryHtml}\`)">⬇ Pobierz</button></div>`
+    :'<div class="es"><p>Brak podsumowania. Kliknij "Edytuj".</p></div>';
+  v.style.display='block';
 }
-function toggleSummaryEdit(){
-  const ea=document.getElementById('summary-edit-area'),v=document.getElementById('summary-view');
+function togSuEdit(){
+  const ea=document.getElementById('su-ea'),v=document.getElementById('su-view');
   if(ea.style.display==='none'){
-    document.getElementById('summary-editor').innerHTML=summaryHtml;
+    document.getElementById('su-ed').innerHTML=summaryHtml;
     ea.style.display='block';v.style.display='none';
-    document.getElementById('summary-toggle-btn').textContent='Podgląd';
-    window._rteActive='summary-editor';
-  }else showSummaryView();
+    document.getElementById('su-tb').textContent='Podgląd';A='su-ed';
+  }else showSuView();
 }
-function cancelSummaryEdit(){showSummaryView()}
-async function saveSummary(){
-  const key=fmtDate(st.summary.date);
-  summaryHtml=document.getElementById('summary-editor').innerHTML;
-  setStatus('summary-save-status','Zapisywanie...',true);
-  await fbSet('summary',key,{html:summaryHtml,updated:new Date().toISOString()});
-  setStatus('summary-save-status','Zapisano ✓');
-  setTimeout(()=>showSummaryView(),700);
+function canSuEdit(){showSuView()}
+async function saveSu(){
+  summaryHtml=document.getElementById('su-ed').innerHTML;
+  setSt('su-ss','Zapisywanie...',true);
+  await fs2('summary',fd(S.summary.date),{html:summaryHtml,updated:new Date().toISOString()});
+  setSt('su-ss','Zapisano ✓');setTimeout(()=>showSuView(),700);
 }
 
-// ─── PROJECTS ─────────────────────────────────────────────────────────────────
-async function loadProjects(){
-  const data=await fbGet('meta','projects');
-  st.projects=data?.list||[];
+// ── NOTATNIK ──────────────────────────────────────────────────────────────────
+async function loadNotes(){
+  const data=await fg2('meta','notes');allNotes=data?.list||[];
 }
-async function saveProjectsMeta(){
-  await fbSet('meta','projects',{list:st.projects});
+async function saveNotesMeta(){await fs2('meta','notes',{list:allNotes})}
+async function renderNotes(){
+  await loadNotes();
+  const el=document.getElementById('notes-list');
+  if(!allNotes.length){el.innerHTML='<div class="es"><p>Brak notatek. Kliknij "+ Nowa notatka".</p></div>';return}
+  el.innerHTML=allNotes.map((n,i)=>`
+    <div class="note-card">
+      <div class="note-hdr">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          <span class="note-title">${esc(n.title)}</span>
+          <span class="note-meta">${n.updated||''}</span>
+        </div>
+        <div class="note-acts">
+          <button class="btn bgh bsm" id="nedit-btn-${i}" onclick="togNoteEdit(${i})">Edytuj</button>
+          <button class="dl-btn" onclick="dlNote(${i})">⬇ Pobierz</button>
+          <button class="td" onclick="delNote(${i})">✕</button>
+        </div>
+      </div>
+      <div class="note-body" id="nbody-${i}">${n.html||esc(n.text||'')}</div>
+      <div id="nedit-${i}" style="display:none;padding:12px;border-top:1px solid var(--br)">
+        <div class="rtb" id="ntb-${i}"></div>
+        <div contenteditable="true" id="ned-${i}" style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ned-${i}'">${n.html||esc(n.text||'')}</div>
+        <div class="sb2">
+          <button class="btn bsm" onclick="saveNoteEdit(${i})">💾 Zapisz</button>
+          <button class="btn bgh bsm" onclick="togNoteEdit(${i})">Anuluj</button>
+        </div>
+      </div>
+    </div>`).join('');
+  allNotes.forEach((_,i)=>initRTE('ntb-'+i,'ned-'+i));
+}
+function togNoteEdit(i){
+  const ea=document.getElementById('nedit-'+i);
+  const showing=ea.style.display!=='none';
+  ea.style.display=showing?'none':'block';
+  document.getElementById('nedit-btn-'+i).textContent=showing?'Edytuj':'Anuluj';
+  if(!showing){document.getElementById('ned-'+i).innerHTML=allNotes[i].html||'';A='ned-'+i}
+}
+async function saveNoteEdit(i){
+  const html=document.getElementById('ned-'+i).innerHTML;
+  allNotes[i].html=html;allNotes[i].updated=new Date().toLocaleDateString('pl-PL');
+  await saveNotesMeta();renderNotes();
+}
+async function delNote(i){
+  if(!confirm('Usunąć notatkę?'))return;
+  allNotes.splice(i,1);await saveNotesMeta();renderNotes();
+}
+function dlNote(i){dlContent(allNotes[i].title,allNotes[i].html||'')}
+function openNewNoteModal(){
+  document.getElementById('mr').innerHTML=`
+  <div class="mb" onclick="if(event.target===this)closeMod()">
+    <div class="mo">
+      <h3>Nowa notatka</h3>
+      <div class="mr"><label>Tytuł</label><input type="text" id="nn-t" placeholder="Tytuł notatki..."></div>
+      <div class="mr"><label>Treść (opcjonalnie)</label><textarea id="nn-c" placeholder="Możesz dodać treść teraz lub później..."></textarea></div>
+      <div class="mf">
+        <button class="btn bgh bsm" onclick="closeMod()">Anuluj</button>
+        <button class="btn bsm" onclick="createNote()">Utwórz</button>
+      </div>
+    </div>
+  </div>`;
+  setTimeout(()=>document.getElementById('nn-t')?.focus(),50);
+}
+async function createNote(){
+  const t=document.getElementById('nn-t').value.trim();if(!t)return;
+  const c=document.getElementById('nn-c').value.trim();
+  allNotes.unshift({title:t,html:c?esc(c):'',updated:new Date().toLocaleDateString('pl-PL')});
+  await saveNotesMeta();closeMod();renderNotes();
 }
 
-function renderProjectsList(){
-  document.getElementById('projects-list-view').style.display='block';
-  document.getElementById('project-detail-view').classList.remove('active');
-  const grid=document.getElementById('projects-grid');
-  if(!st.projects.length){grid.innerHTML='<div class="empty-state"><p>Brak projektów. Kliknij "+ Nowy projekt".</p></div>';return}
-  grid.innerHTML=st.projects.map((p,i)=>{
-    const done=p.stages?p.stages.filter(s=>s.done).length:0;
-    const total=p.stages?p.stages.length:0;
-    const pct=total?Math.round(done/total*100):0;
-    return`<div class="project-card" onclick="openProject(${i})">
-      <h3>${escHtml(p.name)}</h3>
-      <div class="project-progress-bar"><div class="project-progress-fill" style="width:${pct}%"></div></div>
-      <div class="project-meta">${pct}% ukończone · ${total} etapów</div>
+// ── PROJEKTY ──────────────────────────────────────────────────────────────────
+async function loadProjectsMeta(){
+  const data=await fg2('meta','projects');allProjects=data?.list||[];
+}
+async function saveProjMeta(){await fs2('meta','projects',{list:allProjects})}
+
+function renderProjList(){
+  document.getElementById('plist-view').style.display='block';
+  document.getElementById('proj-detail').style.display='none';
+  const el=document.getElementById('proj-grid');
+  if(!allProjects.length){el.innerHTML='<div class="es"><p>Brak projektów. Kliknij "+ Nowy projekt".</p></div>';return}
+  el.innerHTML=allProjects.map((p,i)=>{
+    const dn=p.stages?p.stages.filter(s=>s.done).length:0;
+    const tot=p.stages?p.stages.length:0;
+    const pct=tot?Math.round(dn/tot*100):0;
+    return`<div class="pc" onclick="openProj(${i})">
+      <h3>${esc(p.name)}</h3>
+      <div class="ppb"><div class="ppf" style="width:${pct}%"></div></div>
+      <div class="pm">${pct}% · ${tot} etapów · ${(p.cols||[]).length} kolumn</div>
     </div>`;
   }).join('');
 }
 
-function openProject(idx){
-  st.currentProject=idx;
-  document.getElementById('projects-list-view').style.display='none';
-  const dv=document.getElementById('project-detail-view');
-  dv.classList.add('active');
-  renderProjectDetail();
+async function openProj(idx){
+  S.curProj=idx;
+  document.getElementById('plist-view').style.display='none';
+  const dv=document.getElementById('proj-detail');dv.style.display='block';
+  // load full data
+  const p=allProjects[idx];
+  const data=await fg2('proj_data',p.id);
+  p.cols=data?.cols||p.cols||[];
+  p.stages=data?.stages||p.stages||[];
+  projData={cols:p.cols,stages:p.stages};
+  renderProjDetail();
 }
 
-async function renderProjectDetail(){
-  const p=st.projects[st.currentProject];
-  if(!p)return;
-  const data=await fbGet('project_data',p.id);
-  p.columns=data?.columns||p.columns||[];
-  p.stages=data?.stages||p.stages||[];
-  p.charts=data?.charts||p.charts||[];
-
-  const done=p.stages.filter(s=>s.done).length;
-  const total=p.stages.length;
-  const pct=total?Math.round(done/total*100):0;
-
-  const dv=document.getElementById('project-detail-view');
+function renderProjDetail(){
+  const p=allProjects[S.curProj];if(!p)return;
+  const dn=p.stages.filter(s=>s.done).length,tot=p.stages.length;
+  const pct=tot?Math.round(dn/tot*100):0;
+  const dv=document.getElementById('proj-detail');
   dv.innerHTML=`
-    <div class="project-back" onclick="renderProjectsList()">← Wszystkie projekty</div>
-    <div class="project-title-bar">
-      <h2>${escHtml(p.name)}</h2>
-      <button class="btn btn-ghost btn-sm" onclick="editProjectName(${st.currentProject})">Zmień nazwę</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteProject(${st.currentProject})">Usuń projekt</button>
+    <div class="pback" onclick="renderProjList()">← Wszystkie projekty</div>
+    <div class="ptb">
+      <h2>${esc(p.name)}</h2>
+      <button class="btn bgh bsm" onclick="editProjName()">✎ Zmień nazwę</button>
+      <button class="dl-btn" onclick="dlProject()">⬇ Pobierz projekt</button>
+      <button class="btn bdn bsm" onclick="delProj()">Usuń</button>
     </div>
 
-    <!-- POSTĘP ETAPÓW -->
-    <div class="stages-bar">
-      <div class="stages-header">
-        <span class="stages-title">Postęp projektu</span>
-        <span class="progress-pct">${pct}%</span>
-      </div>
-      <div class="big-progress"><div class="big-progress-fill" id="proj-prog-fill" style="width:${pct}%"></div></div>
-      <div class="stages-list" id="proj-stages">
-        ${p.stages.map((s,i)=>`
-          <div class="stage-row">
-            <input type="checkbox" class="stage-check" ${s.done?'checked':''} onchange="toggleStage(${i})">
-            <span class="stage-name ${s.done?'done':''}">${escHtml(s.name)}</span>
-            <button class="stage-del" onclick="deleteStage(${i})">✕</button>
-          </div>`).join('')}
-      </div>
+    <!-- ETAPY -->
+    <div class="stgb">
+      <div class="stgh"><span style="font-size:13px;font-weight:500">Postęp projektu</span><span class="ppct" id="ppct">${pct}%</span></div>
+      <div class="bpb"><div class="bpf" id="bpf" style="width:${pct}%"></div></div>
+      <div id="stg-list">${renderStageList(p.stages)}</div>
       <div style="display:flex;gap:8px;margin-top:10px">
-        <input type="text" id="new-stage-input" placeholder="Nazwa nowego etapu..." style="flex:1" onkeydown="if(event.key==='Enter')addStage()">
-        <button class="btn btn-sm" onclick="addStage()">+ Etap</button>
+        <input type="text" id="nsi" placeholder="Nowy etap..." style="flex:1" onkeydown="if(event.key==='Enter')addStage()">
+        <button class="btn bsm" onclick="addStage()">+ Etap</button>
       </div>
     </div>
 
     <!-- KOLUMNY -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <span style="font-size:13px;font-weight:500">Kolumny projektu</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:13px;font-weight:500">Podkategorie</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" onclick="addColumn('full')">+ Pełna szerokość</button>
-        <button class="btn btn-ghost btn-sm" onclick="addColumn('half')">+ Pół na pół</button>
-        <button class="btn btn-ghost btn-sm" onclick="addColumn('third')">+ Trzecia</button>
-        <button class="btn btn-ghost btn-sm" onclick="addColumn('chart')">+ Wykres</button>
+        <button class="btn bgh bsm" onclick="addProjCol('text')">+ Tekst</button>
+        <button class="btn bgh bsm" onclick="addProjCol('chart')">+ Wykres</button>
       </div>
     </div>
-    <div id="proj-columns" class="columns-area"></div>`;
+    <div class="pcols-wrap"><div class="pcols" id="pcols"></div></div>`;
 
-  renderProjectColumns();
+  renderProjCols();
 }
 
-function renderProjectColumns(){
-  const p=st.projects[st.currentProject];
-  if(!p)return;
-  const area=document.getElementById('proj-columns');
-  if(!area)return;
-  if(!p.columns.length){area.innerHTML='<div class="empty-state"><p>Brak kolumn. Dodaj pierwszą kolumnę powyżej.</p></div>';return}
+function renderStageList(stages){
+  if(!stages.length)return'<div class="es"><p>Brak etapów.</p></div>';
+  return stages.map((s,i)=>`
+    <div class="stgr">
+      <input type="checkbox" class="stgc" ${s.done?'checked':''} onchange="togStage(${i})">
+      <span class="stgn ${s.done?'dn':''}">${esc(s.name)}</span>
+      <button class="stgd" onclick="delStage(${i})">✕</button>
+    </div>`).join('');
+}
 
-  // Group columns by row
-  let html='';
-  let i=0;
-  while(i<p.columns.length){
-    const col=p.columns[i];
-    if(col.layout==='full'||col.layout==='chart'){
-      html+=`<div class="columns-row-full">${renderCol(col,i)}</div>`;i++;
-    }else if(col.layout==='half'){
-      const next=p.columns[i+1];
-      if(next&&next.layout==='half'){
-        html+=`<div class="columns-row-half">${renderCol(col,i)}${renderCol(next,i+1)}</div>`;i+=2;
-      }else{html+=`<div class="columns-row-full">${renderCol(col,i)}</div>`;i++}
-    }else if(col.layout==='third'){
-      const n1=p.columns[i+1],n2=p.columns[i+2];
-      if(n1&&n1.layout==='third'&&n2&&n2.layout==='third'){
-        html+=`<div class="columns-row-third">${renderCol(col,i)}${renderCol(n1,i+1)}${renderCol(n2,i+2)}</div>`;i+=3;
-      }else{html+=`<div class="columns-row-full">${renderCol(col,i)}</div>`;i++}
-    }else{html+=`<div class="columns-row-full">${renderCol(col,i)}</div>`;i++}
-  }
-  area.innerHTML=html;
-  // Init RTEs and charts
-  p.columns.forEach((col,i)=>{
-    if(col.layout!=='chart'){
+async function togStage(i){
+  const p=allProjects[S.curProj];
+  p.stages[i].done=!p.stages[i].done;
+  const dn=p.stages.filter(s=>s.done).length,tot=p.stages.length;
+  const pct=tot?Math.round(dn/tot*100):0;
+  document.getElementById('ppct').textContent=pct+'%';
+  document.getElementById('bpf').style.width=pct+'%';
+  document.getElementById('stg-list').innerHTML=renderStageList(p.stages);
+  await saveProjData();
+}
+async function addStage(){
+  const inp=document.getElementById('nsi'),v=inp.value.trim();if(!v)return;
+  allProjects[S.curProj].stages.push({name:v,done:false});inp.value='';
+  await saveProjData();renderProjDetail();
+}
+async function delStage(i){
+  allProjects[S.curProj].stages.splice(i,1);
+  await saveProjData();renderProjDetail();
+}
+
+function renderProjCols(){
+  const p=allProjects[S.curProj];if(!p)return;
+  const area=document.getElementById('pcols');if(!area)return;
+  chartInst={};
+  if(!p.cols.length){area.innerHTML='<div class="es" style="min-width:260px"><p>Brak podkategorii.<br>Dodaj pierwszą powyżej.</p></div>';return}
+  area.innerHTML=p.cols.map((c,i)=>renderColHTML(c,i)).join('');
+  p.cols.forEach((c,i)=>{
+    if(c.type==='text'){
       initRTE('ctb-'+i,'ced-'+i);
       const ed=document.getElementById('ced-'+i);
-      if(ed){ed.innerHTML=col.html||'';ed.addEventListener('focus',()=>window._rteActive='ced-'+i)}
+      if(ed){ed.innerHTML=c.html||'';ed.addEventListener('focus',()=>A='ced-'+i)}
     }else{
-      renderChartInCol(col,i);
+      renderChartCol(c,i);
     }
   });
 }
 
-function renderCol(col,i){
-  if(col.layout==='chart'){
-    return`<div class="col-card">
-      <div class="col-header">
-        <span class="col-title" id="ctitle-${i}">${escHtml(col.name||'Wykres')}</span>
-        <div class="col-actions">
-          <button class="col-act" onclick="renameCol(${i})">✎</button>
-          <button class="col-act" onclick="deleteCol(${i})">✕</button>
+function renderColHTML(c,i){
+  if(c.type==='chart'){
+    return`<div class="pcol">
+      <div class="pcolh">
+        <span class="pcolt">${esc(c.name||'Wykres')}</span>
+        <div class="pcola">
+          <button class="pca" onclick="renProjCol(${i})">✎</button>
+          <button class="pca" onclick="saveProjColChart(${i})">💾</button>
+          <button class="pca" onclick="delProjCol(${i})">✕</button>
         </div>
       </div>
-      <div class="col-body">
-        <div id="chart-area-${i}"></div>
-      </div>
+      <div class="pcolb" id="chart-col-${i}"></div>
     </div>`;
   }
-  return`<div class="col-card">
-    <div class="col-header">
-      <span class="col-title">${escHtml(col.name||'Kolumna')}</span>
-      <div class="col-actions">
-        <button class="col-act" onclick="renameCol(${i})">✎</button>
-        <button class="col-act" onclick="saveCol(${i})">💾</button>
-        <button class="col-act" onclick="deleteCol(${i})">✕</button>
+  return`<div class="pcol">
+    <div class="pcolh">
+      <span class="pcolt">${esc(c.name||'Kolumna')}</span>
+      <div class="pcola">
+        <button class="pca" onclick="renProjCol(${i})">✎</button>
+        <button class="pca" onclick="saveProjCol(${i})">💾</button>
+        <button class="pca" onclick="dlColContent(${i})">⬇</button>
+        <button class="pca" onclick="delProjCol(${i})">✕</button>
       </div>
     </div>
-    <div class="col-body">
-      <div class="rte-toolbar" id="ctb-${i}"></div>
-      <div contenteditable="true" id="ced-${i}" data-placeholder="Wpisz treść..." style="min-height:80px;padding:10px;border:1px solid var(--border-med);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="window._rteActive='ced-${i}'"></div>
+    <div class="pcolb">
+      <div class="rtb" id="ctb-${i}"></div>
+      <div contenteditable="true" id="ced-${i}" data-placeholder="Wpisz treść..." style="min-height:120px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ced-${i}'"></div>
     </div>
   </div>`;
 }
 
-function renderChartInCol(col,i){
-  const area=document.getElementById('chart-area-'+i);
-  if(!area)return;
-  const chartData=col.chartData||{type:'bar',labels:[],values:[]};
+function renderChartCol(c,i){
+  const area=document.getElementById('chart-col-'+i);if(!area)return;
+  const cd=c.chartData||{type:'bar',labels:[],values:[]};
   area.innerHTML=`
-    <div class="chart-controls">
-      <select id="ctype-${i}" onchange="updateChart(${i})" style="font-size:12px;padding:4px 8px">
-        <option value="bar" ${chartData.type==='bar'?'selected':''}>Słupkowy</option>
-        <option value="pie" ${chartData.type==='pie'?'selected':''}>Kołowy</option>
-        <option value="doughnut" ${chartData.type==='doughnut'?'selected':''}>Pierścieniowy</option>
-        <option value="line" ${chartData.type==='line'?'selected':''}>Liniowy</option>
+    <div class="chctrl">
+      <select id="ctype-${i}" onchange="updChart(${i})" style="font-size:12px;padding:3px 7px">
+        <option value="bar" ${cd.type==='bar'?'selected':''}>Słupkowy</option>
+        <option value="pie" ${cd.type==='pie'?'selected':''}>Kołowy</option>
+        <option value="doughnut" ${cd.type==='doughnut'?'selected':''}>Pierścieniowy</option>
+        <option value="line" ${cd.type==='line'?'selected':''}>Liniowy</option>
       </select>
-      <button class="btn btn-ghost btn-sm" onclick="addChartRow(${i})">+ Wiersz</button>
-      <button class="btn btn-sm" onclick="saveCol(${i})">💾 Zapisz</button>
+      <button class="btn bgh bsm" onclick="addChRow(${i})">+ Wiersz</button>
     </div>
-    <div id="chart-rows-${i}">
-      ${(chartData.labels||[]).map((lbl,ri)=>`
-        <div class="chart-label-row">
-          <input type="text" value="${escHtml(lbl)}" placeholder="Etykieta" oninput="updateChartData(${i},${ri},'label',this.value)">
-          <input type="number" value="${chartData.values[ri]||0}" placeholder="0" oninput="updateChartData(${i},${ri},'value',this.value)" style="width:70px">
-          <button class="task-del" onclick="removeChartRow(${i},${ri})">✕</button>
-        </div>`).join('')}
-    </div>
-    <div class="chart-wrap"><canvas id="chart-canvas-${i}" height="200"></canvas></div>`;
+    <div id="chrows-${i}">${(cd.labels||[]).map((lb,ri)=>`
+      <div class="chrow">
+        <input type="text" value="${esc(lb)}" placeholder="Etykieta" oninput="updChData(${i},${ri},'l',this.value)">
+        <input type="number" value="${cd.values[ri]||0}" oninput="updChData(${i},${ri},'v',this.value)">
+        <button class="td" onclick="delChRow(${i},${ri})">✕</button>
+      </div>`).join('')}</div>
+    <div style="position:relative"><canvas id="chcanvas-${i}" height="180"></canvas></div>`;
   drawChart(i);
 }
-
-function addChartRow(i){
-  const p=st.projects[st.currentProject];
-  if(!p.columns[i].chartData)p.columns[i].chartData={type:'bar',labels:[],values:[]};
-  p.columns[i].chartData.labels.push('');
-  p.columns[i].chartData.values.push(0);
-  renderChartInCol(p.columns[i],i);
-}
-function removeChartRow(i,ri){
-  const p=st.projects[st.currentProject];
-  p.columns[i].chartData.labels.splice(ri,1);
-  p.columns[i].chartData.values.splice(ri,1);
-  renderChartInCol(p.columns[i],i);
-}
-function updateChartData(i,ri,field,val){
-  const p=st.projects[st.currentProject];
-  if(field==='label')p.columns[i].chartData.labels[ri]=val;
-  else p.columns[i].chartData.values[ri]=parseFloat(val)||0;
-  drawChart(i);
-}
-function updateChart(i){
-  const p=st.projects[st.currentProject];
-  p.columns[i].chartData.type=document.getElementById('ctype-'+i).value;
-  drawChart(i);
-}
-
-const chartInstances={};
+function addChRow(i){const p=allProjects[S.curProj];if(!p.cols[i].chartData)p.cols[i].chartData={type:'bar',labels:[],values:[]};p.cols[i].chartData.labels.push('');p.cols[i].chartData.values.push(0);renderChartCol(p.cols[i],i)}
+function delChRow(i,ri){const p=allProjects[S.curProj];p.cols[i].chartData.labels.splice(ri,1);p.cols[i].chartData.values.splice(ri,1);renderChartCol(p.cols[i],i)}
+function updChData(i,ri,f,v){const p=allProjects[S.curProj];if(f==='l')p.cols[i].chartData.labels[ri]=v;else p.cols[i].chartData.values[ri]=parseFloat(v)||0;drawChart(i)}
+function updChart(i){const p=allProjects[S.curProj];p.cols[i].chartData.type=document.getElementById('ctype-'+i).value;drawChart(i)}
 function drawChart(i){
-  const p=st.projects[st.currentProject];
-  const cd=p.columns[i].chartData||{type:'bar',labels:[],values:[]};
-  const canvas=document.getElementById('chart-canvas-'+i);
-  if(!canvas)return;
-  if(chartInstances[i])chartInstances[i].destroy();
-  const colors=cd.labels.map((_,idx)=>COLORS[idx%COLORS.length]);
-  chartInstances[i]=new Chart(canvas,{
+  const p=allProjects[S.curProj];const cd=p.cols[i].chartData||{type:'bar',labels:[],values:[]};
+  const canvas=document.getElementById('chcanvas-'+i);if(!canvas)return;
+  if(chartInst[i])chartInst[i].destroy();
+  const cols=cd.labels.map((_,j)=>COLORS[j%COLORS.length]);
+  chartInst[i]=new Chart(canvas,{
     type:cd.type,
-    data:{labels:cd.labels,datasets:[{label:'',data:cd.values,backgroundColor:colors,borderColor:colors,borderWidth:1,fill:cd.type==='line'}]},
-    options:{responsive:true,plugins:{legend:{display:cd.type!=='bar'&&cd.type!=='line'}},scales:cd.type==='pie'||cd.type==='doughnut'?{}:{y:{beginAtZero:true}}}
+    data:{labels:cd.labels,datasets:[{data:cd.values,backgroundColor:cols,borderColor:cols,borderWidth:1,fill:cd.type==='line'}]},
+    options:{responsive:true,plugins:{legend:{display:cd.type==='pie'||cd.type==='doughnut'}},scales:cd.type==='pie'||cd.type==='doughnut'?{}:{y:{beginAtZero:true}}}
   });
 }
-
-async function addColumn(layout){
-  const p=st.projects[st.currentProject];
-  const name=prompt('Nazwa kolumny:');
-  if(!name)return;
-  const col={name,layout,html:'',chartData:layout==='chart'?{type:'bar',labels:[],values:[]}:undefined};
-  p.columns.push(col);
-  await saveProjectData();
-  renderProjectColumns();
+async function saveProjColChart(i){
+  const p=allProjects[S.curProj];
+  await saveProjData();
+  alert('Wykres zapisany ✓');
 }
-async function renameCol(i){
-  const p=st.projects[st.currentProject];
-  const name=prompt('Nowa nazwa:',p.columns[i].name);
-  if(!name)return;
-  p.columns[i].name=name;
-  await saveProjectData();
-  renderProjectColumns();
+async function saveProjCol(i){
+  const p=allProjects[S.curProj];
+  const ed=document.getElementById('ced-'+i);if(ed)p.cols[i].html=ed.innerHTML;
+  await saveProjData();
+  // brief visual feedback
+  const btn=event.target;const orig=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=orig,1500);
 }
-async function saveCol(i){
-  const p=st.projects[st.currentProject];
-  const ed=document.getElementById('ced-'+i);
-  if(ed)p.columns[i].html=ed.innerHTML;
-  await saveProjectData();
-  setStatus('plan-save-status','Kolumna zapisana ✓');
+async function renProjCol(i){
+  const p=allProjects[S.curProj];
+  const name=prompt('Nowa nazwa:',p.cols[i].name);if(!name)return;
+  p.cols[i].name=name;await saveProjData();renderProjCols();
 }
-async function deleteCol(i){
+async function delProjCol(i){
   if(!confirm('Usunąć tę kolumnę?'))return;
-  const p=st.projects[st.currentProject];
-  p.columns.splice(i,1);
-  await saveProjectData();
-  renderProjectColumns();
+  allProjects[S.curProj].cols.splice(i,1);
+  await saveProjData();renderProjCols();
 }
-
-async function toggleStage(i){
-  const p=st.projects[st.currentProject];
-  p.stages[i].done=!p.stages[i].done;
-  const done=p.stages.filter(s=>s.done).length;
-  const pct=p.stages.length?Math.round(done/p.stages.length*100):0;
-  const fill=document.getElementById('proj-prog-fill');
-  if(fill)fill.style.width=pct+'%';
-  document.querySelectorAll('.progress-pct').forEach(el=>{if(el.closest('#project-detail-view'))el.textContent=pct+'%'});
-  await saveProjectData();
-  // re-render stages only
-  const sl=document.getElementById('proj-stages');
-  if(sl)sl.innerHTML=p.stages.map((s,i)=>`
-    <div class="stage-row">
-      <input type="checkbox" class="stage-check" ${s.done?'checked':''} onchange="toggleStage(${i})">
-      <span class="stage-name ${s.done?'done':''}">${escHtml(s.name)}</span>
-      <button class="stage-del" onclick="deleteStage(${i})">✕</button>
-    </div>`).join('');
+function dlColContent(i){
+  const p=allProjects[S.curProj];
+  dlContent(p.cols[i].name||'kolumna',p.cols[i].html||'');
 }
-async function addStage(){
-  const inp=document.getElementById('new-stage-input');
-  const val=inp.value.trim();if(!val)return;
-  const p=st.projects[st.currentProject];
-  p.stages.push({name:val,done:false});inp.value='';
-  await saveProjectData();
-  renderProjectDetail();
+async function addProjCol(type){
+  const name=prompt('Nazwa podkategorii:');if(!name)return;
+  const p=allProjects[S.curProj];
+  p.cols.push({name,type,html:'',chartData:type==='chart'?{type:'bar',labels:[],values:[]}:undefined});
+  await saveProjData();renderProjCols();
 }
-async function deleteStage(i){
-  const p=st.projects[st.currentProject];
-  p.stages.splice(i,1);
-  await saveProjectData();
-  renderProjectDetail();
+async function saveProjData(){
+  const p=allProjects[S.curProj];
+  await fs2('proj_data',p.id,{cols:p.cols,stages:p.stages,updated:new Date().toISOString()});
+  await saveProjMeta();
 }
-async function saveProjectData(){
-  const p=st.projects[st.currentProject];
-  await fbSet('project_data',p.id,{columns:p.columns||[],stages:p.stages||[],updated:new Date().toISOString()});
-  await saveProjectsMeta();
+async function delProj(){
+  if(!confirm('Usunąć projekt?'))return;
+  const p=allProjects[S.curProj];
+  await fdel('proj_data',p.id);
+  allProjects.splice(S.curProj,1);
+  await saveProjMeta();renderProjList();
 }
-async function deleteProject(idx){
-  if(!confirm('Usunąć ten projekt?'))return;
-  const p=st.projects[idx];
-  await fbDel('project_data',p.id);
-  st.projects.splice(idx,1);
-  await saveProjectsMeta();
-  renderProjectsList();
+async function editProjName(){
+  const p=allProjects[S.curProj];
+  const name=prompt('Nowa nazwa:',p.name);if(!name)return;
+  p.name=name;await saveProjMeta();renderProjDetail();
 }
-async function editProjectName(idx){
-  const name=prompt('Nowa nazwa projektu:',st.projects[idx].name);
-  if(!name)return;
-  st.projects[idx].name=name;
-  await saveProjectsMeta();
-  renderProjectDetail();
-}
-
-function openNewProjectModal(){
-  document.getElementById('modal-root').innerHTML=`
-  <div class="modal-backdrop" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
+function openNewProjModal(){
+  document.getElementById('mr').innerHTML=`
+  <div class="mb" onclick="if(event.target===this)closeMod()">
+    <div class="mo">
       <h3>Nowy projekt</h3>
-      <div class="modal-row"><label>Nazwa projektu</label><input type="text" id="new-proj-name" placeholder="np. Aplikacja XYZ"></div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Anuluj</button>
-        <button class="btn btn-sm" onclick="createProject()">Utwórz</button>
+      <div class="mr"><label>Nazwa projektu</label><input type="text" id="np-n" placeholder="np. Aplikacja XYZ"></div>
+      <div class="mf">
+        <button class="btn bgh bsm" onclick="closeMod()">Anuluj</button>
+        <button class="btn bsm" onclick="createProj()">Utwórz</button>
       </div>
     </div>
   </div>`;
-  setTimeout(()=>document.getElementById('new-proj-name')?.focus(),50);
+  setTimeout(()=>document.getElementById('np-n')?.focus(),50);
 }
-async function createProject(){
-  const name=document.getElementById('new-proj-name').value.trim();
-  if(!name)return;
-  const id='proj_'+Date.now();
-  st.projects.push({id,name,stages:[],columns:[]});
-  await saveProjectsMeta();
-  closeModal();
-  renderProjectsList();
+async function createProj(){
+  const name=document.getElementById('np-n').value.trim();if(!name)return;
+  const id='p_'+Date.now();
+  allProjects.push({id,name,stages:[],cols:[]});
+  await saveProjMeta();closeMod();renderProjList();
+}
+function dlProject(){
+  const p=allProjects[S.curProj];
+  let txt=`# ${p.name}\n\n`;
+  txt+=`## Etapy (${p.stages.filter(s=>s.done).length}/${p.stages.length})\n`;
+  p.stages.forEach(s=>txt+=`- [${s.done?'x':' '}] ${s.name}\n`);
+  p.cols.forEach(c=>{txt+=`\n## ${c.name}\n`;if(c.type==='text')txt+=htmlToTxt(c.html||'');});
+  const blob=new Blob([txt],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(p.name||'projekt')+'.txt';a.click();
 }
 
-// ─── CUSTOM TABS ──────────────────────────────────────────────────────────────
-async function loadCustomTabs(){
-  const data=await fbGet('meta','custom_tabs');
-  st.customTabs=data?.tabs||[];
-  renderCustomNav();
+// ── CUSTOM TABS ───────────────────────────────────────────────────────────────
+async function loadTabs(){
+  const data=await fg2('meta','tabs');allTabs=data?.tabs||[];renderTabNav();
 }
-async function saveCustomTabsMeta(){
-  await fbSet('meta','custom_tabs',{tabs:st.customTabs});
-}
-function renderCustomNav(){
-  const cont=document.getElementById('custom-nav-items');
-  const label=document.getElementById('custom-tabs-label');
-  label.style.display=st.customTabs.length?'block':'none';
-  cont.innerHTML=st.customTabs.map((t,i)=>`
-    <div class="nav-item" data-section="custom_${t.id}" onclick="switchSection('custom_${t.id}','${escHtml(t.name)}')">
-      <span class="nav-icon">${t.icon||'▸'}</span>
-      <span>${escHtml(t.name)}</span>
-      <div class="nav-item-actions">
-        <button class="nav-act-btn" onclick="event.stopPropagation();renameCustomTab(${i})" title="Zmień nazwę">✎</button>
-        <button class="nav-act-btn" onclick="event.stopPropagation();deleteCustomTab(${i})" title="Usuń">✕</button>
+async function saveTabsMeta(){await fs2('meta','tabs',{tabs:allTabs})}
+function renderTabNav(){
+  const el=document.getElementById('cni');
+  document.getElementById('cnsl').style.display=allTabs.length?'block':'none';
+  el.innerHTML=allTabs.map((t,i)=>`
+    <div class="ni" data-sec="ct_${t.id}" onclick="goSec('ct_${t.id}','${esc(t.name)}')">
+      <span class="nic">${t.ic||'▸'}</span>
+      <span>${esc(t.name)}</span>
+      <div class="nia">
+        <button class="nib" onclick="event.stopPropagation();renTab(${i})">✎</button>
+        <button class="nib" onclick="event.stopPropagation();delTab(${i})">✕</button>
       </div>
     </div>`).join('');
 }
 function openNewTabModal(){
-  let selectedFormat='notes';
-  document.getElementById('modal-root').innerHTML=`
-  <div class="modal-backdrop" onclick="if(event.target===this)closeModal()">
-    <div class="modal" style="width:420px">
+  window._selFmt='notes';
+  document.getElementById('mr').innerHTML=`
+  <div class="mb" onclick="if(event.target===this)closeMod()">
+    <div class="mo">
       <h3>Nowa zakładka</h3>
-      <div class="modal-row"><label>Nazwa zakładki</label><input type="text" id="new-tab-name" placeholder="np. Projekty, Notatki, Cele..."></div>
-      <div class="modal-row">
-        <label>Format zakładki</label>
-        <div class="format-grid">
-          ${TAB_FORMATS.map(f=>`
-            <div class="format-opt ${f.id==='notes'?'selected':''}" id="fmt-${f.id}" onclick="selectFormat('${f.id}')">
-              <span class="ficon">${f.icon}</span>
-              <strong>${f.label}</strong><br><span style="font-size:10px">${f.desc}</span>
-            </div>`).join('')}
+      <div class="mr"><label>Nazwa</label><input type="text" id="nt-n" placeholder="np. Cele, Pomysły..."></div>
+      <div class="mr"><label>Format</label>
+        <div class="fgrid">
+          ${TAB_FMTS.map(f=>`<div class="fo ${f.id==='notes'?'sel':''}" id="fo-${f.id}" onclick="selFmt('${f.id}')">
+            <span class="fi">${f.ic}</span><strong>${f.lbl}</strong><br><span style="font-size:10px">${f.desc}</span>
+          </div>`).join('')}
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Anuluj</button>
-        <button class="btn btn-sm" onclick="createCustomTab()">Utwórz zakładkę</button>
+      <div class="mf">
+        <button class="btn bgh bsm" onclick="closeMod()">Anuluj</button>
+        <button class="btn bsm" onclick="createTab()">Utwórz</button>
       </div>
     </div>
   </div>`;
-  setTimeout(()=>document.getElementById('new-tab-name')?.focus(),50);
+  setTimeout(()=>document.getElementById('nt-n')?.focus(),50);
 }
-function selectFormat(id){
-  document.querySelectorAll('.format-opt').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('fmt-'+id)?.classList.add('selected');
-  window._selectedFormat=id;
+function selFmt(id){
+  document.querySelectorAll('.fo').forEach(e=>e.classList.remove('sel'));
+  document.getElementById('fo-'+id)?.classList.add('sel');
+  window._selFmt=id;
 }
-async function createCustomTab(){
-  const name=document.getElementById('new-tab-name').value.trim();
-  if(!name)return;
-  const format=window._selectedFormat||'notes';
-  const icons={notes:'✎',plan:'✓',projects:'◫',journal:'◷'};
-  const id='tab_'+Date.now();
-  st.customTabs.push({id,name,format,icon:icons[format]||'▸'});
-  await saveCustomTabsMeta();
-  renderCustomNav();
-  closeModal();
-  switchSection('custom_'+id,name);
+async function createTab(){
+  const name=document.getElementById('nt-n').value.trim();if(!name)return;
+  const fmt=window._selFmt||'notes';
+  const ics={notes:'📋',plan:'✓',journal:'✎'};
+  const id='t_'+Date.now();
+  allTabs.push({id,name,fmt,ic:ics[fmt]||'▸'});
+  await saveTabsMeta();renderTabNav();closeMod();
+  goSec('ct_'+id,name);
 }
-async function renameCustomTab(i){
-  const name=prompt('Nowa nazwa:',st.customTabs[i].name);
-  if(!name)return;
-  st.customTabs[i].name=name;
-  await saveCustomTabsMeta();
-  renderCustomNav();
+async function renTab(i){
+  const name=prompt('Nowa nazwa:',allTabs[i].name);if(!name)return;
+  allTabs[i].name=name;await saveTabsMeta();renderTabNav();
 }
-async function deleteCustomTab(i){
-  if(!confirm('Usunąć tę zakładkę?'))return;
-  st.customTabs.splice(i,1);
-  await saveCustomTabsMeta();
-  renderCustomNav();
-  switchSection('plan');
+async function delTab(i){
+  if(!confirm('Usunąć zakładkę?'))return;
+  allTabs.splice(i,1);await saveTabsMeta();renderTabNav();goSec('plan');
 }
 
-async function renderCustomTab(sectionId){
-  const tabId=sectionId.replace('custom_','');
-  const tab=st.customTabs.find(t=>t.id===tabId);
-  if(!tab)return;
-  const sec=document.getElementById('section-custom');
-  st.currentCustomTab=tabId;
+async function renderCustomTab(secId){
+  const tabId=secId.replace('ct_','');
+  const tab=allTabs.find(t=>t.id===tabId);if(!tab)return;
+  const sec=document.getElementById('s-custom');
+  S.curTabId=tabId;
 
-  if(tab.format==='notes'){
-    const data=await fbGet('custom_tab',tabId);
-    const html=data?.html||'';
+  if(tab.fmt==='notes'){
+    // NOTATNIK — wiele notatek
+    const data=await fg2('custom_tab',tabId);
+    const notes=data?.notes||[];
     sec.innerHTML=`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-        <div class="day-label">${escHtml(tab.name)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div class="dl">${esc(tab.name)}</div>
+        <button class="btn bsm" onclick="openNewCTabNoteModal('${tabId}')">+ Nowa notatka</button>
       </div>
-      <div class="card">
-        <div class="rte-toolbar" id="ctab-toolbar"></div>
-        <div contenteditable="true" id="ctab-editor" data-placeholder="Zacznij pisać..." style="min-height:300px;padding:14px;border:1px solid var(--border-med);border-top:none;border-radius:0 0 10px 10px;font-size:13px;line-height:1.7;outline:none" onfocus="window._rteActive='ctab-editor'">${html}</div>
-        <div class="save-bar">
-          <button class="btn btn-sm" onclick="saveCustomNotes('${tabId}')">💾 Zapisz</button>
-          <span id="ctab-status" class="save-status"></span>
-        </div>
-      </div>`;
-    initRTE('ctab-toolbar','ctab-editor');
-    window._rteActive='ctab-editor';
+      <div id="ctab-notes">${notes.length?notes.map((n,i)=>`
+        <div class="note-card">
+          <div class="note-hdr">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+              <span class="note-title">${esc(n.title)}</span>
+              <span class="note-meta">${n.updated||''}</span>
+            </div>
+            <div class="note-acts">
+              <button class="btn bgh bsm" id="cne-btn-${i}" onclick="togCTabNoteEdit('${tabId}',${i})">Edytuj</button>
+              <button class="dl-btn" onclick="dlContent('${esc(n.title)}',\`${n.html||''}\`)">⬇</button>
+              <button class="td" onclick="delCTabNote('${tabId}',${i})">✕</button>
+            </div>
+          </div>
+          <div class="note-body" id="cnb-${i}">${n.html||esc(n.text||'')}</div>
+          <div id="cne-${i}" style="display:none;padding:12px;border-top:1px solid var(--br)">
+            <div class="rtb" id="cntb-${i}"></div>
+            <div contenteditable="true" id="cned-${i}" style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='cned-${i}'">${n.html||''}</div>
+            <div class="sb2">
+              <button class="btn bsm" onclick="saveCTabNoteEdit('${tabId}',${i})">💾 Zapisz</button>
+              <button class="btn bgh bsm" onclick="togCTabNoteEdit('${tabId}',${i})">Anuluj</button>
+            </div>
+          </div>
+        </div>`).join(''):'<div class="es"><p>Brak notatek.</p></div>'}</div>`;
+    notes.forEach((_,i)=>initRTE('cntb-'+i,'cned-'+i));
 
-  }else if(tab.format==='plan'){
-    const data=await fbGet('custom_tab',tabId);
+  }else if(tab.fmt==='plan'){
+    const data=await fg2('custom_tab',tabId);
     const tasks=data?.tasks||[];
     sec.innerHTML=`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div class="day-label">${escHtml(tab.name)}</div>
-      </div>
+      <div class="dl" style="margin-bottom:18px">${esc(tab.name)}</div>
       <div class="card">
-        <div class="card-header"><span class="card-title">Zadania</span></div>
         <div id="ctab-tasks">${tasks.map((t,i)=>`
-          <div class="task-row">
-            <input type="checkbox" class="task-check" ${t.done?'checked':''} onchange="toggleCustomTask('${tabId}',${i})">
-            <span class="task-text ${t.done?'done':''}">${escHtml(t.text)}</span>
-            <button class="task-del" onclick="deleteCustomTask('${tabId}',${i})">✕</button>
-          </div>`).join('')||'<div class="empty-state"><p>Brak zadań.</p></div>'}</div>
-        <div class="add-task-row">
-          <input type="text" id="ctab-new-task" placeholder="Nowe zadanie..." style="flex:1" onkeydown="if(event.key==='Enter')addCustomTask('${tabId}')">
-          <button class="btn btn-sm" onclick="addCustomTask('${tabId}')">+ Dodaj</button>
+          <div class="tr">
+            <input type="checkbox" class="tc" ${t.done?'checked':''} onchange="togCTabTask('${tabId}',${i})">
+            <span class="tt ${t.done?'dn':''}">${esc(t.text)}</span>
+            <button class="td" onclick="delCTabTask('${tabId}',${i})">✕</button>
+          </div>`).join('')||'<div class="es"><p>Brak zadań.</p></div>'}</div>
+        <div class="atr">
+          <input type="text" id="ct-ni" placeholder="Nowe zadanie..." style="flex:1" onkeydown="if(event.key==='Enter')addCTabTask('${tabId}')">
+          <button class="btn bsm" onclick="addCTabTask('${tabId}')">+ Dodaj</button>
         </div>
-        <div class="save-bar">
-          <button class="btn btn-sm" onclick="saveCustomTasksTab('${tabId}')">💾 Zapisz</button>
-          <span id="ctab-status" class="save-status"></span>
+        <div class="sb2">
+          <button class="btn bsm" onclick="saveCTabTasks('${tabId}')">💾 Zapisz</button>
+          <span id="ct-ss" class="ss"></span>
         </div>
       </div>`;
 
-  }else if(tab.format==='projects'){
-    // redirect to projects section style but scoped
-    sec.innerHTML=`<div class="day-label" style="margin-bottom:20px">${escHtml(tab.name)}</div><div class="empty-state"><p>Ten format jest obsługiwany przez wbudowaną zakładkę "Projekty".<br>Użyj jej z menu po lewej.</p></div>`;
-
-  }else if(tab.format==='journal'){
-    const data=await fbGet('custom_tab',tabId);
+  }else if(tab.fmt==='journal'){
+    const data=await fg2('custom_tab',tabId);
     const entries=data?.entries||[];
     sec.innerHTML=`
-      <div class="day-label" style="margin-bottom:20px">${escHtml(tab.name)}</div>
+      <div class="dl" style="margin-bottom:18px">${esc(tab.name)}</div>
       <div class="card">
-        <div class="card-header"><span class="card-title">Nowy wpis</span></div>
-        <div id="ctj-toolbar" class="rte-toolbar"></div>
-        <div contenteditable="true" id="ctj-editor" data-placeholder="Napisz wpis..." style="min-height:80px;padding:11px;border:1px solid var(--border-med);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="window._rteActive='ctj-editor'"></div>
-        <div class="save-bar">
-          <button class="btn btn-sm" onclick="addCustomJournalEntry('${tabId}')">💾 Dodaj wpis</button>
-          <span id="ctab-status" class="save-status"></span>
+        <div class="ch"><span class="ct2">Nowy wpis</span></div>
+        <div id="ctj-tb" class="rtb"></div>
+        <div contenteditable="true" id="ctj-ed" data-placeholder="Napisz wpis..." style="min-height:70px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctj-ed'"></div>
+        <div class="sb2">
+          <button class="btn bsm" onclick="addCTabJEntry('${tabId}')">💾 Dodaj wpis</button>
+          <span id="ctj-ss" class="ss"></span>
         </div>
       </div>
-      <div id="ctj-entries">${entries.map((e,i)=>`
-        <div class="entry-card">
-          <div class="entry-card-header">
-            <span class="entry-time">${e.time}</span>
-            <button class="task-del" onclick="deleteCustomJournalEntry('${tabId}',${i})">✕</button>
+      <div id="ctj-list">${entries.map((e,i)=>`
+        <div class="ec">
+          <div class="ech">
+            <span class="et">${e.time}</span>
+            <div style="display:flex;gap:5px">
+              <button class="btn bgh bsm" onclick="startEditCTabJ('${tabId}',${i})">Edytuj</button>
+              <button class="dl-btn" onclick="dlContent('wpis_${e.time}',\`${e.html||''}\`)">⬇</button>
+              <button class="td" onclick="delCTabJEntry('${tabId}',${i})">✕</button>
+            </div>
           </div>
-          <div class="entry-body">${e.html||escHtml(e.text||'')}</div>
-        </div>`).join('')||'<div class="empty-state"><p>Brak wpisów.</p></div>'}</div>`;
-    initRTE('ctj-toolbar','ctj-editor');
-    window._rteActive='ctj-editor';
+          <div class="eb" id="ctjv-${i}">${e.html||esc(e.text||'')}</div>
+          <div id="ctje-${i}" style="display:none">
+            <div class="rtb" id="ctjtb-${i}"></div>
+            <div contenteditable="true" id="ctjed-${i}" style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctjed-${i}'">${e.html||''}</div>
+            <div class="sb2">
+              <button class="btn bsm" onclick="saveCTabJEdit('${tabId}',${i})">Zapisz</button>
+              <button class="btn bgh bsm" onclick="canCTabJEdit(${i})">Anuluj</button>
+            </div>
+          </div>
+        </div>`).join('')||'<div class="es"><p>Brak wpisów.</p></div>'}</div>`;
+    initRTE('ctj-tb','ctj-ed');
+    entries.forEach((_,i)=>initRTE('ctjtb-'+i,'ctjed-'+i));
   }
 }
 
-// Custom tab helpers
-async function saveCustomNotes(tabId){
-  const html=document.getElementById('ctab-editor').innerHTML;
-  setStatus('ctab-status','Zapisywanie...',true);
-  await fbSet('custom_tab',tabId,{html,updated:new Date().toISOString()});
-  setStatus('ctab-status','Zapisano ✓');
+// custom tab notes helpers
+function openNewCTabNoteModal(tabId){
+  document.getElementById('mr').innerHTML=`
+  <div class="mb" onclick="if(event.target===this)closeMod()">
+    <div class="mo">
+      <h3>Nowa notatka</h3>
+      <div class="mr"><label>Tytuł</label><input type="text" id="cnn-t" placeholder="Tytuł..."></div>
+      <div class="mf">
+        <button class="btn bgh bsm" onclick="closeMod()">Anuluj</button>
+        <button class="btn bsm" onclick="createCTabNote('${tabId}')">Utwórz</button>
+      </div>
+    </div>
+  </div>`;
+  setTimeout(()=>document.getElementById('cnn-t')?.focus(),50);
 }
-let _customTasks=[];
-async function toggleCustomTask(tabId,i){
-  const data=await fbGet('custom_tab',tabId);
-  _customTasks=data?.tasks||[];
-  _customTasks[i].done=!_customTasks[i].done;
-  await fbSet('custom_tab',tabId,{tasks:_customTasks});
-  renderCustomTab('custom_'+tabId);
+async function createCTabNote(tabId){
+  const t=document.getElementById('cnn-t').value.trim();if(!t)return;
+  const data=await fg2('custom_tab',tabId);
+  const notes=data?.notes||[];
+  notes.unshift({title:t,html:'',updated:new Date().toLocaleDateString('pl-PL')});
+  await fs2('custom_tab',tabId,{notes});closeMod();
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
-async function deleteCustomTask(tabId,i){
-  const data=await fbGet('custom_tab',tabId);
-  _customTasks=data?.tasks||[];
-  _customTasks.splice(i,1);
-  await fbSet('custom_tab',tabId,{tasks:_customTasks});
-  renderCustomTab('custom_'+tabId);
+async function togCTabNoteEdit(tabId,i){
+  const ea=document.getElementById('cne-'+i);
+  const showing=ea.style.display!=='none';
+  ea.style.display=showing?'none':'block';
+  document.getElementById('cne-btn-'+i).textContent=showing?'Edytuj':'Anuluj';
+  if(!showing){A='cned-'+i}
 }
-async function addCustomTask(tabId){
-  const inp=document.getElementById('ctab-new-task');
-  const val=inp.value.trim();if(!val)return;
-  const data=await fbGet('custom_tab',tabId);
-  _customTasks=data?.tasks||[];
-  _customTasks.push({text:val,done:false});
-  await fbSet('custom_tab',tabId,{tasks:_customTasks});
-  inp.value='';
-  renderCustomTab('custom_'+tabId);
+async function saveCTabNoteEdit(tabId,i){
+  const html=document.getElementById('cned-'+i).innerHTML;
+  const data=await fg2('custom_tab',tabId);
+  const notes=data?.notes||[];
+  notes[i].html=html;notes[i].updated=new Date().toLocaleDateString('pl-PL');
+  await fs2('custom_tab',tabId,{notes});
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
-async function saveCustomTasksTab(tabId){
-  setStatus('ctab-status','Zapisywanie...',true);
-  await fbSet('custom_tab',tabId,{tasks:_customTasks});
-  setStatus('ctab-status','Zapisano ✓');
+async function delCTabNote(tabId,i){
+  if(!confirm('Usunąć notatkę?'))return;
+  const data=await fg2('custom_tab',tabId);const notes=data?.notes||[];
+  notes.splice(i,1);await fs2('custom_tab',tabId,{notes});
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
-async function addCustomJournalEntry(tabId){
-  const ed=document.getElementById('ctj-editor');
-  const html=ed.innerHTML.trim();if(!html||html==='<br>')return;
-  const data=await fbGet('custom_tab',tabId);
-  const entries=data?.entries||[];
-  entries.push({html,time:new Date().toLocaleDateString('pl-PL')+' '+fmtNow()});
-  await fbSet('custom_tab',tabId,{entries});
-  ed.innerHTML='';
-  setStatus('ctab-status','Dodano ✓');
-  renderCustomTab('custom_'+tabId);
+
+// custom tab tasks
+let _ctTasks=[];
+async function togCTabTask(tabId,i){
+  const data=await fg2('custom_tab',tabId);_ctTasks=data?.tasks||[];
+  _ctTasks[i].done=!_ctTasks[i].done;await fs2('custom_tab',tabId,{tasks:_ctTasks});
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
-async function deleteCustomJournalEntry(tabId,i){
-  if(!confirm('Usunąć?'))return;
-  const data=await fbGet('custom_tab',tabId);
-  const entries=data?.entries||[];
-  entries.splice(i,1);
-  await fbSet('custom_tab',tabId,{entries});
-  renderCustomTab('custom_'+tabId);
+async function delCTabTask(tabId,i){
+  const data=await fg2('custom_tab',tabId);_ctTasks=data?.tasks||[];
+  _ctTasks.splice(i,1);await fs2('custom_tab',tabId,{tasks:_ctTasks});
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+}
+async function addCTabTask(tabId){
+  const inp=document.getElementById('ct-ni'),v=inp.value.trim();if(!v)return;
+  const data=await fg2('custom_tab',tabId);_ctTasks=data?.tasks||[];
+  _ctTasks.push({text:v,done:false});await fs2('custom_tab',tabId,{tasks:_ctTasks});
+  inp.value='';goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+}
+async function saveCTabTasks(tabId){
+  setSt('ct-ss','Zapisywanie...',true);
+  await fs2('custom_tab',tabId,{tasks:_ctTasks});setSt('ct-ss','Zapisano ✓');
+}
+
+// custom tab journal
+async function addCTabJEntry(tabId){
+  const ed=document.getElementById('ctj-ed'),html=ed.innerHTML.trim();if(!html||html==='<br>')return;
+  const data=await fg2('custom_tab',tabId);const entries=data?.entries||[];
+  entries.push({html,time:new Date().toLocaleDateString('pl-PL')+' '+now2()});
+  await fs2('custom_tab',tabId,{entries});ed.innerHTML='';setSt('ctj-ss','Dodano ✓');
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+}
+function startEditCTabJ(tabId,i){document.getElementById('ctjv-'+i).style.display='none';document.getElementById('ctje-'+i).style.display='block'}
+function canCTabJEdit(i){document.getElementById('ctjv-'+i).style.display='block';document.getElementById('ctje-'+i).style.display='none'}
+async function saveCTabJEdit(tabId,i){
+  const html=document.getElementById('ctjed-'+i).innerHTML;
+  const data=await fg2('custom_tab',tabId);const entries=data?.entries||[];
+  entries[i].html=html;await fs2('custom_tab',tabId,{entries});
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+}
+async function delCTabJEntry(tabId,i){
+  if(!confirm('Usunąć wpis?'))return;
+  const data=await fg2('custom_tab',tabId);const entries=data?.entries||[];
+  entries.splice(i,1);await fs2('custom_tab',tabId,{entries});
+  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+}
+
+// ── DOWNLOAD ──────────────────────────────────────────────────────────────────
+function htmlToTxt(html){
+  const tmp=document.createElement('div');tmp.innerHTML=html;return tmp.textContent||'';
+}
+function dlContent(name,html){
+  const txt=htmlToTxt(html);
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(name||'notatka').replace(/[^a-zA-Z0-9_\- ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g,'_')+'.txt';
+  a.click();
 }
 </script>
 </body>
