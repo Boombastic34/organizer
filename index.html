@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-   // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+  // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -691,17 +691,17 @@ function renderJnList(){
       <div class="ech">
         <span class="et">${e.time}</span>
         <div style="display:flex;gap:5px">
-          <button class="btn bgh bsm" onclick="startEditJn(${i})">Edytuj</button>
+          <button class="btn bgh bsm" id="jebtn-${i}" onclick="startEditJn(${i})">Edytuj</button>
           <button class="td" onclick="delJnEntry(${i})">✕</button>
-          <button class="dl-btn" onclick="dlContent('${esc(e.time)}',\`${e.html||''}\`)">⬇ Pobierz</button>
         </div>
       </div>
       <div class="eb" id="jv-${i}">${e.html||esc(e.text||'')}</div>
       <div id="je-${i}" style="display:none">
         <div class="rtb" id="jt-${i}"></div>
-        <div contenteditable="true" id="jed-${i}" data-placeholder="Edytuj notatkę..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='jed-${i}'"</div>
+        <div contenteditable="true" id="jed-${i}" data-placeholder="Edytuj notatkę..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='jed-${i}'">${e.html||esc(e.text||'')}
+        </div>
         <div class="sb2">
-          <button class="btn bsm" onclick="saveJnEdit(${i})">Zapisz</button>
+          <button class="btn bsm" onclick="saveJnEdit(${i})">💾 Zapisz zmiany</button>
           <button class="btn bgh bsm" onclick="canJnEdit(${i})">Anuluj</button>
         </div>
       </div>
@@ -718,25 +718,26 @@ async function saveJnEntry(){
   ed.innerHTML='';setSt('jn-ss','Notatka dodana ✓');renderJnList();
 }
 function startEditJn(i){
-  const ed=document.getElementById('jed-'+i);
-  if(ed && !ed._loaded){ed.innerHTML=journalEntries[i].html||esc(journalEntries[i].text||'');ed._loaded=true;}
   document.getElementById('jv-'+i).style.display='none';
   document.getElementById('je-'+i).style.display='block';
+  document.getElementById('jebtn-'+i).textContent='Zwiń';
   A='jed-'+i;
 }
 function canJnEdit(i){
-  const ed=document.getElementById('jed-'+i);
-  if(ed)ed._loaded=false;
   document.getElementById('jv-'+i).style.display='block';
   document.getElementById('je-'+i).style.display='none';
+  document.getElementById('jebtn-'+i).textContent='Edytuj';
 }
 async function saveJnEdit(i){
   const ed=document.getElementById('jed-'+i);
-  const html=ed?ed.innerHTML:'';
+  if(!ed)return;
+  const html=ed.innerHTML;
   journalEntries[i].html=html;
-  if(ed)ed._loaded=false;
+  // Update view div in place (no full re-render needed)
+  const view=document.getElementById('jv-'+i);
+  if(view)view.innerHTML=html;
   await fs2('journal',fd(S.journal.date),{entries:journalEntries});
-  renderJnList();
+  canJnEdit(i);
 }
 async function delJnEntry(i){
   if(!confirm('Usunąć tę notatkę?'))return;
@@ -966,8 +967,7 @@ function renderProjCols(){
       initRTE('ctb-'+i,'ced-'+i);
       const ed=document.getElementById('ced-'+i);
       if(ed){
-        // Set content AFTER initRTE so toolbar doesn't interfere
-        setTimeout(()=>{ed.innerHTML=c.html||'';},0);
+        ed.innerHTML=c.html||'';
         ed.addEventListener('focus',()=>A='ced-'+i);
       }
     }else{
@@ -1052,11 +1052,13 @@ async function saveProjColChart(i){
 async function saveProjCol(i){
   const p=allProjects[S.curProj];
   const ed=document.getElementById('ced-'+i);
-  if(ed){
-    p.cols[i].html=ed.innerHTML;
-  }
+  if(!ed){alert('Nie znaleziono edytora');return;}
+  p.cols[i].html=ed.innerHTML;
   await saveProjData();
-  const btn=event.target;const orig=btn.textContent;btn.textContent='✓ Zapisano';setTimeout(()=>btn.textContent=orig,2000);
+  // Visual feedback without re-render
+  const btn=event.currentTarget||event.target;
+  const orig=btn.textContent;btn.textContent='✓ Zapisano';
+  setTimeout(()=>{btn.textContent=orig},2000);
 }
 async function renProjCol(i){
   const p=allProjects[S.curProj];
