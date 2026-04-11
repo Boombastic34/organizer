@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-     // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+       // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -1222,7 +1222,8 @@ async function renderCustomTab(secId){
   if(tab.fmt==='notes'){
     // NOTATNIK — wiele notatek
     const data=await fg2('custom_tab',tabId);
-    const notes=data?.notes||[];
+    window._ctNotes=data?.notes||[];
+    const notes=window._ctNotes;
     sec.innerHTML=`
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
         <div class="dl">${esc(tab.name)}</div>
@@ -1251,7 +1252,11 @@ async function renderCustomTab(secId){
             </div>
           </div>
         </div>`).join(''):'<div class="es"><p>Brak notatek.</p></div>'}</div>`;
-    notes.forEach((_,i)=>initRTE('cntb-'+i,'cned-'+i));
+    notes.forEach((_,i)=>{
+      initRTE('cntb-'+i,'cned-'+i);
+      const ed=document.getElementById('cned-'+i);
+      if(ed)ed.addEventListener('focus',()=>A='cned-'+i);
+    });
 
   }else if(tab.fmt==='plan'){
     const data=await fg2('custom_tab',tabId);
@@ -1277,7 +1282,8 @@ async function renderCustomTab(secId){
 
   }else if(tab.fmt==='journal'){
     const data=await fg2('custom_tab',tabId);
-    const entries=data?.entries||[];
+    window._ctEntries=data?.entries||[];
+    const entries=window._ctEntries;
     sec.innerHTML=`
       <div class="dl" style="margin-bottom:18px">${esc(tab.name)}</div>
       <div class="card">
@@ -1294,7 +1300,7 @@ async function renderCustomTab(secId){
           <div class="ech">
             <span class="et">${e.time}</span>
             <div style="display:flex;gap:5px">
-              <button class="btn bgh bsm" onclick="startEditCTabJ('${tabId}',${i})">Edytuj</button>
+              <button class="btn bgh bsm" id="ctjbtn-${i}" onclick="startEditCTabJ('${tabId}',${i})">Edytuj</button>
               <button class="dl-btn" onclick="dlContent('wpis_${e.time}',\`${e.html||''}\`)">⬇</button>
               <button class="td" onclick="delCTabJEntry('${tabId}',${i})">✕</button>
             </div>
@@ -1310,7 +1316,13 @@ async function renderCustomTab(secId){
           </div>
         </div>`).join('')||'<div class="es"><p>Brak wpisów.</p></div>'}</div>`;
     initRTE('ctj-tb','ctj-ed');
-    entries.forEach((_,i)=>initRTE('ctjtb-'+i,'ctjed-'+i));
+    const newEd=document.getElementById('ctj-ed');
+    if(newEd)newEd.addEventListener('focus',()=>A='ctj-ed');
+    entries.forEach((_,i)=>{
+      initRTE('ctjtb-'+i,'ctjed-'+i);
+      const ed=document.getElementById('ctjed-'+i);
+      if(ed)ed.addEventListener('focus',()=>A='ctjed-'+i);
+    });
   }
 }
 
@@ -1341,11 +1353,12 @@ function togCTabNoteEdit(tabId,i){
   const ea=document.getElementById('cne-'+i);
   const showing=ea.style.display!=='none';
   if(!showing){
-    // Fill editor with current content when opening
+    // Fill editor from DATA, not from DOM
     const ed=document.getElementById('cned-'+i);
-    const view=document.getElementById('cnb-'+i);
-    if(ed&&view)ed.innerHTML=view.innerHTML;
+    const note=(window._ctNotes||[])[i];
+    if(ed)ed.innerHTML=note?.html||'';
     A='cned-'+i;
+    setTimeout(()=>ed&&ed.focus(),50);
   }
   ea.style.display=showing?'none':'block';
   document.getElementById('cne-btn-'+i).textContent=showing?'Edytuj':'Anuluj';
@@ -1354,14 +1367,20 @@ async function saveCTabNoteEdit(tabId,i){
   const ed=document.getElementById('cned-'+i);
   if(!ed)return;
   const html=ed.innerHTML;
-  const data=await fg2('custom_tab',tabId);
-  const notes=data?.notes||[];
-  notes[i].html=html;notes[i].updated=new Date().toLocaleDateString('pl-PL');
-  await fs2('custom_tab',tabId,{notes});
-  // Update view in place
-  const view=document.getElementById('cnb-'+i);
-  if(view)view.innerHTML=html;
+  if(!window._ctNotes)window._ctNotes=[];
+  if(window._ctNotes[i]){
+    window._ctNotes[i].html=html;
+    window._ctNotes[i].updated=new Date().toLocaleDateString('pl-PL');
+  }
+  await fs2('custom_tab',tabId,{notes:window._ctNotes});
+  // Close edit panel and re-render fresh from saved data
   togCTabNoteEdit(tabId,i);
+  // Update displayed body without full page reload
+  const card=document.getElementById('cne-'+i);
+  if(card){
+    const body=card.previousElementSibling;
+    if(body&&body.classList.contains('note-body'))body.innerHTML=html;
+  }
 }
 async function delCTabNote(tabId,i){
   if(!confirm('Usunąć notatkę?'))return;
@@ -1403,20 +1422,28 @@ async function addCTabJEntry(tabId){
 }
 function startEditCTabJ(tabId,i){
   const ed=document.getElementById('ctjed-'+i);
-  const view=document.getElementById('ctjv-'+i);
-  if(ed&&view)ed.innerHTML=view.innerHTML;
-  view.style.display='none';
+  const entry=(window._ctEntries||[])[i];
+  if(ed)ed.innerHTML=entry?.html||'';
+  document.getElementById('ctjv-'+i).style.display='none';
   document.getElementById('ctje-'+i).style.display='block';
+  document.getElementById('ctjbtn-'+i).textContent='Zwiń';
   A='ctjed-'+i;
+  setTimeout(()=>ed&&ed.focus(),50);
 }
-function canCTabJEdit(i){document.getElementById('ctjv-'+i).style.display='block';document.getElementById('ctje-'+i).style.display='none'}
+function canCTabJEdit(i){
+  document.getElementById('ctjv-'+i).style.display='block';
+  document.getElementById('ctje-'+i).style.display='none';
+  const btn=document.getElementById('ctjbtn-'+i);
+  if(btn)btn.textContent='Edytuj';
+}
 async function saveCTabJEdit(tabId,i){
   const ed=document.getElementById('ctjed-'+i);
   if(!ed)return;
   const html=ed.innerHTML;
-  const data=await fg2('custom_tab',tabId);const entries=data?.entries||[];
-  entries[i].html=html;await fs2('custom_tab',tabId,{entries});
-  // Update view in place
+  if(!window._ctEntries)window._ctEntries=[];
+  if(window._ctEntries[i])window._ctEntries[i].html=html;
+  await fs2('custom_tab',tabId,{entries:window._ctEntries});
+  // Update view in place from saved data
   const view=document.getElementById('ctjv-'+i);
   if(view)view.innerHTML=html;
   canCTabJEdit(i);
