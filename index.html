@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-       // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+        // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -288,7 +288,8 @@ select{cursor:pointer}
       <div class="nadd" onclick="openNewTabModal()"><span style="font-size:15px">+</span><span>Dodaj zakładkę</span></div>
     </nav>
     <div id="sbf">
-      <button onclick="dlAll()" style="width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:inherit;margin-bottom:9px;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,0.22)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">⬇ Pobierz wszystkie dane</button>
+      <button onclick="dlAll()" style="width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:inherit;margin-bottom:6px;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,0.22)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">⬇ Pobierz wszystkie dane</button>
+      <button onclick="repairData()" style="width:100%;background:rgba(255,200,0,0.15);border:1px solid rgba(255,200,0,0.3);color:rgba(255,220,100,0.9);padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:inherit;margin-bottom:9px;transition:all .15s" onmouseover="this.style.background='rgba(255,200,0,0.25)'" onmouseout="this.style.background='rgba(255,200,0,0.15)'">🔧 Napraw dane w bazie</button>
       <p style="font-size:10px;color:rgba(255,255,255,.35);margin-bottom:5px">Firebase Spark (darmowy)</p>
       <div id="fb-usage" style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.7">
         <div>📖 Odczyty: <span id="fu-r">0</span> / 50 000 / dzień</div>
@@ -1217,11 +1218,12 @@ async function renderCustomTab(secId){
   const tabId=secId.replace('ct_','');
   const tab=allTabs.find(t=>t.id===tabId);if(!tab)return;
   const sec=document.getElementById('s-custom');
+  sec.innerHTML='<div class="es"><p>Wczytywanie...</p></div>';
   S.curTabId=tabId;
 
   if(tab.fmt==='notes'){
-    // NOTATNIK — wiele notatek
     const data=await fg2('custom_tab',tabId);
+    if(S.curTabId!==tabId)return;
     window._ctNotes=data?.notes||[];
     const notes=window._ctNotes;
     sec.innerHTML=`
@@ -1242,7 +1244,7 @@ async function renderCustomTab(secId){
               <button class="td" onclick="delCTabNote('${tabId}',${i})">✕</button>
             </div>
           </div>
-          <div class="note-body" id="cnb-${i}">${n.html||esc(n.text||'')}</div>
+          <div class="note-body" id="cnb-${i}">${cleanHtml(n.html)||esc(n.text||'')}</div>
           <div id="cne-${i}" style="display:none;padding:12px;border-top:1px solid var(--br)">
             <div class="rtb" id="cntb-${i}"></div>
             <div contenteditable="true" id="cned-${i}" data-placeholder="Edytuj notatkę..." style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='cned-${i}'"></div>
@@ -1282,6 +1284,7 @@ async function renderCustomTab(secId){
 
   }else if(tab.fmt==='journal'){
     const data=await fg2('custom_tab',tabId);
+    if(S.curTabId!==tabId)return;
     window._ctEntries=data?.entries||[];
     const entries=window._ctEntries;
     sec.innerHTML=`
@@ -1305,7 +1308,7 @@ async function renderCustomTab(secId){
               <button class="td" onclick="delCTabJEntry('${tabId}',${i})">✕</button>
             </div>
           </div>
-          <div class="eb" id="ctjv-${i}">${e.html||esc(e.text||'')}</div>
+          <div class="eb" id="ctjv-${i}">${cleanHtml(e.html)||esc(e.text||'')}</div>
           <div id="ctje-${i}" style="display:none">
             <div class="rtb" id="ctjtb-${i}"></div>
             <div contenteditable="true" id="ctjed-${i}" data-placeholder="Edytuj wpis..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctjed-${i}'"></div>
@@ -1356,7 +1359,7 @@ function togCTabNoteEdit(tabId,i){
     // Fill editor from DATA, not from DOM
     const ed=document.getElementById('cned-'+i);
     const note=(window._ctNotes||[])[i];
-    if(ed)ed.innerHTML=note?.html||'';
+    if(ed)ed.innerHTML=cleanHtml(note?.html||'');
     A='cned-'+i;
     setTimeout(()=>ed&&ed.focus(),50);
   }
@@ -1423,7 +1426,7 @@ async function addCTabJEntry(tabId){
 function startEditCTabJ(tabId,i){
   const ed=document.getElementById('ctjed-'+i);
   const entry=(window._ctEntries||[])[i];
-  if(ed)ed.innerHTML=entry?.html||'';
+  if(ed)ed.innerHTML=cleanHtml(entry?.html||'');
   document.getElementById('ctjv-'+i).style.display='none';
   document.getElementById('ctje-'+i).style.display='block';
   document.getElementById('ctjbtn-'+i).textContent='Zwiń';
@@ -1459,12 +1462,73 @@ async function delCTabJEntry(tabId,i){
 function htmlToTxt(html){
   const tmp=document.createElement('div');tmp.innerHTML=html;return tmp.textContent||'';
 }
+function cleanHtml(html){
+  if(!html)return '';
+  // If content looks double-escaped (contains literal &lt; or &gt;), unescape it
+  if(html.includes('&lt;')||html.includes('&amp;')){
+    const tmp=document.createElement('div');
+    tmp.innerHTML=html;
+    return tmp.innerHTML;
+  }
+  return html;
+}
 function dlContent(name,html){
   const txt=htmlToTxt(html);
   const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=(name||'notatka').replace(/[^a-zA-Z0-9_\- ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g,'_')+'.txt';
   a.click();
+}
+
+async function repairData(){
+  if(!confirm('Czy naprawić dane w bazie? Oczyści zduplikowany tekst ze wszystkich notatek i dzienników.'))return;
+  let fixed=0;
+  // Helper: unescape double-escaped HTML
+  function fix(html){
+    if(!html)return '';
+    const tmp=document.createElement('div');
+    tmp.innerHTML=html;
+    // If textContent contains HTML tags, it was double-escaped
+    const txt=tmp.textContent;
+    if(txt.includes('<')&&txt.includes('>')){
+      // It was escaped - the real HTML is in textContent
+      return txt;
+    }
+    return html;
+  }
+  // Fix all custom tabs
+  const tabsMeta=await fg('meta','tabs');
+  for(const t of (tabsMeta?.tabs||[])){
+    const data=await fg('custom_tab',t.id);
+    let changed=false;
+    if(t.fmt==='notes'&&data?.notes){
+      data.notes.forEach(n=>{const f=fix(n.html||'');if(f!==n.html){n.html=f;changed=true;}});
+      if(changed){await fs2('custom_tab',t.id,{notes:data.notes});fixed++;}
+    }
+    if(t.fmt==='journal'&&data?.entries){
+      data.entries.forEach(e=>{const f=fix(e.html||'');if(f!==e.html){e.html=f;changed=true;}});
+      if(changed){await fs2('custom_tab',t.id,{entries:data.entries});fixed++;}
+    }
+  }
+  // Fix main notes
+  const notesData=await fg('meta','notes');
+  if(notesData?.list){
+    let ch=false;
+    notesData.list.forEach(n=>{const f=fix(n.html||'');if(f!==n.html){n.html=f;ch=true;}});
+    if(ch){await fs2('meta','notes',{list:notesData.list});fixed++;}
+  }
+  // Fix main journal - last 60 days
+  for(let d=0;d<60;d++){
+    const date=new Date();date.setDate(date.getDate()-d);
+    const k=fd(date);
+    const data=await fg('journal',k);
+    if(data?.entries){
+      let ch=false;
+      data.entries.forEach(e=>{const f=fix(e.html||'');if(f!==e.html){e.html=f;ch=true;}});
+      if(ch){await fs2('journal',k,{entries:data.entries});fixed++;}
+    }
+  }
+  alert('Naprawiono '+fixed+' dokumentów. Odśwież stronę.');
 }
 
 async function dlAll(){
