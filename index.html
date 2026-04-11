@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-   // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+     // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -288,9 +288,14 @@ select{cursor:pointer}
       <div class="nadd" onclick="openNewTabModal()"><span style="font-size:15px">+</span><span>Dodaj zakładkę</span></div>
     </nav>
     <div id="sbf">
-      <p>Firebase · dane w chmurze</p>
-      <span class="sbd"><span class="sdd"></span>Online</span>
-      <div id="fb-usage"></div>
+      <button onclick="dlAll()" style="width:100%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-family:inherit;margin-bottom:9px;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,0.22)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">⬇ Pobierz wszystkie dane</button>
+      <p style="font-size:10px;color:rgba(255,255,255,.35);margin-bottom:5px">Firebase Spark (darmowy)</p>
+      <div id="fb-usage" style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.7">
+        <div>📖 Odczyty: <span id="fu-r">0</span> / 50 000 / dzień</div>
+        <div>✏️ Zapisy: <span id="fu-w">0</span> / 20 000 / dzień</div>
+        <div>💾 Szac. rozmiar: <span id="fu-s">~0 KB</span></div>
+        <div style="margin-top:4px;color:rgba(255,255,255,.25);font-size:9px">Liczniki resetują się po odświeżeniu</div>
+      </div>
     </div>
   </div>
 
@@ -461,12 +466,28 @@ async function fs(col,id,data){try{await window._fb.setDoc(fdoc(col,id),data)}ca
 async function fdel(col,id){try{await window._fb.deleteDoc(fdoc(col,id))}catch(e){console.warn(e)}}
 
 // usage counter (approximate)
-let writeCount=0,readCount=0;
-async function fg2(col,id){readCount++;updateUsage();return fg(col,id)}
-async function fs2(col,id,data){writeCount++;updateUsage();return fs(col,id,data)}
+let writeCount=0,readCount=0,sizeEstimate=0;
+async function fg2(col,id){
+  readCount++;
+  // rough size estimate: each doc ~200 bytes avg
+  sizeEstimate+=0.2;
+  updateUsage();
+  return fg(col,id);
+}
+async function fs2(col,id,data){
+  writeCount++;
+  // estimate size from JSON
+  try{sizeEstimate+=JSON.stringify(data).length/1024;}catch{}
+  updateUsage();
+  return fs(col,id,data);
+}
 function updateUsage(){
-  const el=document.getElementById('fb-usage');
-  if(el)el.textContent=`Odczyty: ~${readCount} | Zapisy: ~${writeCount}`;
+  const r=document.getElementById('fu-r');
+  const w=document.getElementById('fu-w');
+  const s=document.getElementById('fu-s');
+  if(r)r.textContent=readCount;
+  if(w)w.textContent=writeCount;
+  if(s)s.textContent='~'+Math.round(sizeEstimate)+' KB';
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -1223,7 +1244,7 @@ async function renderCustomTab(secId){
           <div class="note-body" id="cnb-${i}">${n.html||esc(n.text||'')}</div>
           <div id="cne-${i}" style="display:none;padding:12px;border-top:1px solid var(--br)">
             <div class="rtb" id="cntb-${i}"></div>
-            <div contenteditable="true" id="cned-${i}" style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='cned-${i}'">${n.html||''}</div>
+            <div contenteditable="true" id="cned-${i}" data-placeholder="Edytuj notatkę..." style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='cned-${i}'"></div>
             <div class="sb2">
               <button class="btn bsm" onclick="saveCTabNoteEdit('${tabId}',${i})">💾 Zapisz</button>
               <button class="btn bgh bsm" onclick="togCTabNoteEdit('${tabId}',${i})">Anuluj</button>
@@ -1281,7 +1302,7 @@ async function renderCustomTab(secId){
           <div class="eb" id="ctjv-${i}">${e.html||esc(e.text||'')}</div>
           <div id="ctje-${i}" style="display:none">
             <div class="rtb" id="ctjtb-${i}"></div>
-            <div contenteditable="true" id="ctjed-${i}" style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctjed-${i}'">${e.html||''}</div>
+            <div contenteditable="true" id="ctjed-${i}" data-placeholder="Edytuj wpis..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctjed-${i}'"></div>
             <div class="sb2">
               <button class="btn bsm" onclick="saveCTabJEdit('${tabId}',${i})">Zapisz</button>
               <button class="btn bgh bsm" onclick="canCTabJEdit(${i})">Anuluj</button>
@@ -1316,20 +1337,31 @@ async function createCTabNote(tabId){
   await fs2('custom_tab',tabId,{notes});closeMod();
   goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
-async function togCTabNoteEdit(tabId,i){
+function togCTabNoteEdit(tabId,i){
   const ea=document.getElementById('cne-'+i);
   const showing=ea.style.display!=='none';
+  if(!showing){
+    // Fill editor with current content when opening
+    const ed=document.getElementById('cned-'+i);
+    const view=document.getElementById('cnb-'+i);
+    if(ed&&view)ed.innerHTML=view.innerHTML;
+    A='cned-'+i;
+  }
   ea.style.display=showing?'none':'block';
   document.getElementById('cne-btn-'+i).textContent=showing?'Edytuj':'Anuluj';
-  if(!showing){A='cned-'+i}
 }
 async function saveCTabNoteEdit(tabId,i){
-  const html=document.getElementById('cned-'+i).innerHTML;
+  const ed=document.getElementById('cned-'+i);
+  if(!ed)return;
+  const html=ed.innerHTML;
   const data=await fg2('custom_tab',tabId);
   const notes=data?.notes||[];
   notes[i].html=html;notes[i].updated=new Date().toLocaleDateString('pl-PL');
   await fs2('custom_tab',tabId,{notes});
-  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+  // Update view in place
+  const view=document.getElementById('cnb-'+i);
+  if(view)view.innerHTML=html;
+  togCTabNoteEdit(tabId,i);
 }
 async function delCTabNote(tabId,i){
   if(!confirm('Usunąć notatkę?'))return;
@@ -1369,13 +1401,25 @@ async function addCTabJEntry(tabId){
   await fs2('custom_tab',tabId,{entries});ed.innerHTML='';setSt('ctj-ss','Dodano ✓');
   goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
-function startEditCTabJ(tabId,i){document.getElementById('ctjv-'+i).style.display='none';document.getElementById('ctje-'+i).style.display='block'}
+function startEditCTabJ(tabId,i){
+  const ed=document.getElementById('ctjed-'+i);
+  const view=document.getElementById('ctjv-'+i);
+  if(ed&&view)ed.innerHTML=view.innerHTML;
+  view.style.display='none';
+  document.getElementById('ctje-'+i).style.display='block';
+  A='ctjed-'+i;
+}
 function canCTabJEdit(i){document.getElementById('ctjv-'+i).style.display='block';document.getElementById('ctje-'+i).style.display='none'}
 async function saveCTabJEdit(tabId,i){
-  const html=document.getElementById('ctjed-'+i).innerHTML;
+  const ed=document.getElementById('ctjed-'+i);
+  if(!ed)return;
+  const html=ed.innerHTML;
   const data=await fg2('custom_tab',tabId);const entries=data?.entries||[];
   entries[i].html=html;await fs2('custom_tab',tabId,{entries});
-  goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
+  // Update view in place
+  const view=document.getElementById('ctjv-'+i);
+  if(view)view.innerHTML=html;
+  canCTabJEdit(i);
 }
 async function delCTabJEntry(tabId,i){
   if(!confirm('Usunąć wpis?'))return;
@@ -1394,6 +1438,104 @@ function dlContent(name,html){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=(name||'notatka').replace(/[^a-zA-Z0-9_\- ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g,'_')+'.txt';
   a.click();
+}
+
+async function dlAll(){
+  const btn=document.querySelector('[onclick="dlAll()"]');
+  if(btn){btn.textContent='⏳ Pobieranie...';btn.disabled=true;}
+  let out='';
+  const dt=new Date().toLocaleDateString('pl-PL');
+  out+=`EKSPORT ORGANIZERA — ${dt}\n${'='.repeat(50)}\n\n`;
+
+  // Plan dnia — ostatnie 30 dni
+  out+=`### PLAN DNIA (ostatnie 30 dni)\n\n`;
+  for(let d=0;d<30;d++){
+    const date=new Date();date.setDate(date.getDate()-d);
+    const k=fd(date);
+    const data=await fg('plans',k);
+    if(data?.tasks?.length){
+      out+=`[${k}]\n`;
+      data.tasks.forEach(t=>out+=`  [${t.done?'x':' '}] ${t.text}\n`);
+      out+='\n';
+    }
+  }
+
+  // Dziennik — ostatnie 30 dni
+  out+=`\n### DZIENNIK DNIA (ostatnie 30 dni)\n\n`;
+  for(let d=0;d<30;d++){
+    const date=new Date();date.setDate(date.getDate()-d);
+    const k=fd(date);
+    const data=await fg('journal',k);
+    if(data?.entries?.length){
+      out+=`[${k}]\n`;
+      data.entries.forEach(e=>out+=`  ${e.time}: ${htmlToTxt(e.html||e.text||'')}\n`);
+      out+='\n';
+    }
+  }
+
+  // Podsumowania — ostatnie 30 dni
+  out+=`\n### PODSUMOWANIA (ostatnie 30 dni)\n\n`;
+  for(let d=0;d<30;d++){
+    const date=new Date();date.setDate(date.getDate()-d);
+    const k=fd(date);
+    const data=await fg('summary',k);
+    if(data?.html||data?.text){
+      out+=`[${k}]\n${htmlToTxt(data.html||data.text||'')}\n\n`;
+    }
+  }
+
+  // Notatnik
+  out+=`\n### NOTATNIK\n\n`;
+  const notesData=await fg('meta','notes');
+  (notesData?.list||[]).forEach(n=>{
+    out+=`--- ${n.title} (${n.updated||''}) ---\n${htmlToTxt(n.html||n.text||'')}\n\n`;
+  });
+
+  // Projekty
+  out+=`\n### PROJEKTY\n\n`;
+  const projMeta=await fg('meta','projects');
+  for(const p of (projMeta?.list||[])){
+    out+=`=== ${p.name} ===\n`;
+    const pd=await fg('proj_data',p.id);
+    const stages=pd?.stages||p.stages||[];
+    const done=stages.filter(s=>s.done).length;
+    out+=`Postęp: ${stages.length?Math.round(done/stages.length*100):0}% (${done}/${stages.length} etapów)\n`;
+    stages.forEach(s=>out+=`  [${s.done?'x':' '}] ${s.name}\n`);
+    (pd?.cols||[]).forEach(c=>{
+      out+=`\n[${c.name}]\n${htmlToTxt(c.html||'')}\n`;
+    });
+    out+='\n';
+  }
+
+  // Zakładki niestandardowe
+  out+=`\n### ZAKŁADKI NIESTANDARDOWE\n\n`;
+  const tabsMeta=await fg('meta','tabs');
+  for(const t of (tabsMeta?.tabs||[])){
+    out+=`=== ${t.name} (${t.fmt}) ===\n`;
+    const td2=await fg('custom_tab',t.id);
+    if(t.fmt==='notes')(td2?.notes||[]).forEach(n=>{out+=`--- ${n.title} ---\n${htmlToTxt(n.html||'')}\n\n`;});
+    if(t.fmt==='plan')(td2?.tasks||[]).forEach(tk=>{out+=`[${tk.done?'x':' '}] ${tk.text}\n`;});
+    if(t.fmt==='journal')(td2?.entries||[]).forEach(e=>{out+=`${e.time}: ${htmlToTxt(e.html||'')}\n`;});
+    out+='\n';
+  }
+
+  // Kalendarz — ostatnie 30 dni
+  out+=`\n### KALENDARZ (ostatnie 30 dni)\n\n`;
+  for(let d=0;d<30;d++){
+    const date=new Date();date.setDate(date.getDate()-d);
+    const k=fd(date);
+    const data=await fg('events',k);
+    if(data?.items?.length){
+      out+=`[${k}]\n`;
+      data.items.forEach(e=>out+=`  ${e.time?e.time+' ':''} ${e.title}\n`);
+      out+='\n';
+    }
+  }
+
+  const blob=new Blob([out],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='organizer_eksport_'+fd(new Date())+'.txt';a.click();
+  if(btn){btn.textContent='⬇ Pobierz wszystkie dane';btn.disabled=false;}
 }
 </script>
 </body>
