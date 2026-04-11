@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+   // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -23,7 +23,6 @@
     messagingSenderId: "918521066663",
     appId:             "1:918521066663:web:51ea9be8cdc042834ad782"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -700,7 +699,7 @@ function renderJnList(){
       <div class="eb" id="jv-${i}">${e.html||esc(e.text||'')}</div>
       <div id="je-${i}" style="display:none">
         <div class="rtb" id="jt-${i}"></div>
-        <div contenteditable="true" id="jed-${i}" style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='jed-${i}'">${e.html||esc(e.text||'')}</div>
+        <div contenteditable="true" id="jed-${i}" data-placeholder="Edytuj notatkę..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='jed-${i}'"</div>
         <div class="sb2">
           <button class="btn bsm" onclick="saveJnEdit(${i})">Zapisz</button>
           <button class="btn bgh bsm" onclick="canJnEdit(${i})">Anuluj</button>
@@ -718,11 +717,24 @@ async function saveJnEntry(){
   await fs2('journal',k,{entries:journalEntries});
   ed.innerHTML='';setSt('jn-ss','Notatka dodana ✓');renderJnList();
 }
-function startEditJn(i){document.getElementById('jv-'+i).style.display='none';document.getElementById('je-'+i).style.display='block'}
-function canJnEdit(i){document.getElementById('jv-'+i).style.display='block';document.getElementById('je-'+i).style.display='none'}
+function startEditJn(i){
+  const ed=document.getElementById('jed-'+i);
+  if(ed && !ed._loaded){ed.innerHTML=journalEntries[i].html||esc(journalEntries[i].text||'');ed._loaded=true;}
+  document.getElementById('jv-'+i).style.display='none';
+  document.getElementById('je-'+i).style.display='block';
+  A='jed-'+i;
+}
+function canJnEdit(i){
+  const ed=document.getElementById('jed-'+i);
+  if(ed)ed._loaded=false;
+  document.getElementById('jv-'+i).style.display='block';
+  document.getElementById('je-'+i).style.display='none';
+}
 async function saveJnEdit(i){
-  const html=document.getElementById('jed-'+i).innerHTML;
+  const ed=document.getElementById('jed-'+i);
+  const html=ed?ed.innerHTML:'';
   journalEntries[i].html=html;
+  if(ed)ed._loaded=false;
   await fs2('journal',fd(S.journal.date),{entries:journalEntries});
   renderJnList();
 }
@@ -953,7 +965,11 @@ function renderProjCols(){
     if(c.type==='text'){
       initRTE('ctb-'+i,'ced-'+i);
       const ed=document.getElementById('ced-'+i);
-      if(ed){ed.innerHTML=c.html||'';ed.addEventListener('focus',()=>A='ced-'+i)}
+      if(ed){
+        // Set content AFTER initRTE so toolbar doesn't interfere
+        setTimeout(()=>{ed.innerHTML=c.html||'';},0);
+        ed.addEventListener('focus',()=>A='ced-'+i);
+      }
     }else{
       renderChartCol(c,i);
     }
@@ -1035,10 +1051,12 @@ async function saveProjColChart(i){
 }
 async function saveProjCol(i){
   const p=allProjects[S.curProj];
-  const ed=document.getElementById('ced-'+i);if(ed)p.cols[i].html=ed.innerHTML;
+  const ed=document.getElementById('ced-'+i);
+  if(ed){
+    p.cols[i].html=ed.innerHTML;
+  }
   await saveProjData();
-  // brief visual feedback
-  const btn=event.target;const orig=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=orig,1500);
+  const btn=event.target;const orig=btn.textContent;btn.textContent='✓ Zapisano';setTimeout(()=>btn.textContent=orig,2000);
 }
 async function renProjCol(i){
   const p=allProjects[S.curProj];
