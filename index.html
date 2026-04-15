@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+       // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -1220,49 +1220,16 @@ async function renderCustomTab(secId){
   const sec=document.getElementById('s-custom');
   sec.innerHTML='<div class="es"><p>Wczytywanie...</p></div>';
   S.curTabId=tabId;
+  const data=await fg2('custom_tab',tabId);
+  if(S.curTabId!==tabId)return;
 
   if(tab.fmt==='notes'){
-    const data=await fg2('custom_tab',tabId);
-    if(S.curTabId!==tabId)return;
     window._ctNotes=data?.notes||[];
-    const notes=window._ctNotes;
-    sec.innerHTML=`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-        <div class="dl">${esc(tab.name)}</div>
-        <button class="btn bsm" onclick="openNewCTabNoteModal('${tabId}')">+ Nowa notatka</button>
-      </div>
-      <div id="ctab-notes">${notes.length?notes.map((n,i)=>`
-        <div class="note-card">
-          <div class="note-hdr">
-            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-              <span class="note-title">${esc(n.title)}</span>
-              <span class="note-meta">${n.updated||''}</span>
-            </div>
-            <div class="note-acts">
-              <button class="btn bgh bsm" id="cne-btn-${i}" onclick="togCTabNoteEdit('${tabId}',${i})">Edytuj</button>
-              <button class="dl-btn" onclick="dlContent('${esc(n.title)}',\`${n.html||''}\`)">⬇</button>
-              <button class="td" onclick="delCTabNote('${tabId}',${i})">✕</button>
-            </div>
-          </div>
-          <div class="note-body" id="cnb-${i}">${cleanHtml(n.html)||esc(n.text||'')}</div>
-          <div id="cne-${i}" style="display:none;padding:12px;border-top:1px solid var(--br)">
-            <div class="rtb" id="cntb-${i}"></div>
-            <div contenteditable="true" id="cned-${i}" data-placeholder="Edytuj notatkę..." style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='cned-${i}'"></div>
-            <div class="sb2">
-              <button class="btn bsm" onclick="saveCTabNoteEdit('${tabId}',${i})">💾 Zapisz</button>
-              <button class="btn bgh bsm" onclick="togCTabNoteEdit('${tabId}',${i})">Anuluj</button>
-            </div>
-          </div>
-        </div>`).join(''):'<div class="es"><p>Brak notatek.</p></div>'}</div>`;
-    notes.forEach((_,i)=>{
-      initRTE('cntb-'+i,'cned-'+i);
-      const ed=document.getElementById('cned-'+i);
-      if(ed)ed.addEventListener('focus',()=>A='cned-'+i);
-    });
+    renderCTabNotes(tabId,tab.name);
 
   }else if(tab.fmt==='plan'){
-    const data=await fg2('custom_tab',tabId);
-    const tasks=data?.tasks||[];
+    window._ctTasks2=data?.tasks||[];
+    const tasks=window._ctTasks2;
     sec.innerHTML=`
       <div class="dl" style="margin-bottom:18px">${esc(tab.name)}</div>
       <div class="card">
@@ -1283,51 +1250,84 @@ async function renderCustomTab(secId){
       </div>`;
 
   }else if(tab.fmt==='journal'){
-    const data=await fg2('custom_tab',tabId);
-    if(S.curTabId!==tabId)return;
     window._ctEntries=data?.entries||[];
-    const entries=window._ctEntries;
-    sec.innerHTML=`
-      <div class="dl" style="margin-bottom:18px">${esc(tab.name)}</div>
-      <div class="card">
-        <div class="ch"><span class="ct2">Nowy wpis</span></div>
-        <div id="ctj-tb" class="rtb"></div>
-        <div contenteditable="true" id="ctj-ed" data-placeholder="Napisz wpis..." style="min-height:70px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctj-ed'"></div>
-        <div class="sb2">
-          <button class="btn bsm" onclick="addCTabJEntry('${tabId}')">💾 Dodaj wpis</button>
-          <span id="ctj-ss" class="ss"></span>
-        </div>
-      </div>
-      <div id="ctj-list">${entries.map((e,i)=>`
-        <div class="ec">
-          <div class="ech">
-            <span class="et">${e.time}</span>
-            <div style="display:flex;gap:5px">
-              <button class="btn bgh bsm" id="ctjbtn-${i}" onclick="startEditCTabJ('${tabId}',${i})">Edytuj</button>
-              <button class="dl-btn" onclick="dlContent('wpis_${e.time}',\`${e.html||''}\`)">⬇</button>
-              <button class="td" onclick="delCTabJEntry('${tabId}',${i})">✕</button>
-            </div>
-          </div>
-          <div class="eb" id="ctjv-${i}">${cleanHtml(e.html)||esc(e.text||'')}</div>
-          <div id="ctje-${i}" style="display:none">
-            <div class="rtb" id="ctjtb-${i}"></div>
-            <div contenteditable="true" id="ctjed-${i}" data-placeholder="Edytuj wpis..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctjed-${i}'"></div>
-            <div class="sb2">
-              <button class="btn bsm" onclick="saveCTabJEdit('${tabId}',${i})">Zapisz</button>
-              <button class="btn bgh bsm" onclick="canCTabJEdit(${i})">Anuluj</button>
-            </div>
-          </div>
-        </div>`).join('')||'<div class="es"><p>Brak wpisów.</p></div>'}</div>`;
-    initRTE('ctj-tb','ctj-ed');
-    const newEd=document.getElementById('ctj-ed');
-    if(newEd)newEd.addEventListener('focus',()=>A='ctj-ed');
-    entries.forEach((_,i)=>{
-      initRTE('ctjtb-'+i,'ctjed-'+i);
-      const ed=document.getElementById('ctjed-'+i);
-      if(ed)ed.addEventListener('focus',()=>A='ctjed-'+i);
-    });
+    renderCTabJournal(tabId,tab.name);
   }
 }
+
+function renderCTabNotes(tabId,tabName){
+  const sec=document.getElementById('s-custom');
+  const notes=window._ctNotes||[];
+  sec.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <div class="dl">${esc(tabName)}</div>
+      <button class="btn bsm" onclick="openNewCTabNoteModal('${tabId}')">+ Nowa notatka</button>
+    </div>
+    <div id="ctab-notes">${notes.length?notes.map((n,i)=>`
+      <div class="note-card">
+        <div class="note-hdr">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+            <span class="note-title">${esc(n.title)}</span>
+            <span class="note-meta">${n.updated||''}</span>
+          </div>
+          <div class="note-acts">
+            <button class="btn bgh bsm" id="cne-btn-${i}" onclick="togCTabNoteEdit('${tabId}',${i})">Edytuj</button>
+            <button class="td" onclick="delCTabNote('${tabId}',${i})">✕</button>
+          </div>
+        </div>
+        <div class="note-body" id="cnb-${i}">${n.html||esc(n.text||'')}</div>
+        <div id="cne-${i}" style="display:none;padding:12px;border-top:1px solid var(--br)">
+          <div class="rtb" id="cntb-${i}"></div>
+          <div contenteditable="true" id="cned-${i}" data-placeholder="Edytuj notatkę..." style="min-height:80px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='cned-${i}'">${n.html||esc(n.text||'')}
+          </div>
+          <div class="sb2">
+            <button class="btn bsm" onclick="saveCTabNoteEdit('${tabId}',${i})">💾 Zapisz</button>
+            <button class="btn bgh bsm" onclick="togCTabNoteEdit('${tabId}',${i})">Anuluj</button>
+          </div>
+        </div>
+      </div>`).join(''):'<div class="es"><p>Brak notatek.</p></div>'}</div>`;
+  notes.forEach((_,i)=>initRTE('cntb-'+i,'cned-'+i));
+}
+
+function renderCTabJournal(tabId,tabName){
+  const sec=document.getElementById('s-custom');
+  const entries=window._ctEntries||[];
+  sec.innerHTML=`
+    <div class="dl" style="margin-bottom:18px">${esc(tabName)}</div>
+    <div class="card">
+      <div class="ch"><span class="ct2">Nowy wpis</span></div>
+      <div id="ctj-tb" class="rtb"></div>
+      <div contenteditable="true" id="ctj-ed" data-placeholder="Napisz wpis..." style="min-height:70px;padding:10px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctj-ed'"></div>
+      <div class="sb2">
+        <button class="btn bsm" onclick="addCTabJEntry('${tabId}')">💾 Dodaj wpis</button>
+        <span id="ctj-ss" class="ss"></span>
+      </div>
+    </div>
+    <div id="ctj-list">${entries.map((e,i)=>`
+      <div class="ec">
+        <div class="ech">
+          <span class="et">${e.time}</span>
+          <div style="display:flex;gap:5px">
+            <button class="btn bgh bsm" id="ctjbtn-${i}" onclick="startEditCTabJ('${tabId}',${i})">Edytuj</button>
+            <button class="td" onclick="delCTabJEntry('${tabId}',${i})">✕</button>
+          </div>
+        </div>
+        <div class="eb" id="ctjv-${i}">${e.html||esc(e.text||'')}</div>
+        <div id="ctje-${i}" style="display:none">
+          <div class="rtb" id="ctjtb-${i}"></div>
+          <div contenteditable="true" id="ctjed-${i}" data-placeholder="Edytuj wpis..." style="min-height:60px;padding:9px;border:1px solid var(--brm);border-top:none;border-radius:0 0 8px 8px;font-size:13px;line-height:1.65;outline:none" onfocus="A='ctjed-${i}'">${e.html||esc(e.text||'')}
+          </div>
+          <div class="sb2">
+            <button class="btn bsm" onclick="saveCTabJEdit('${tabId}',${i})">💾 Zapisz</button>
+            <button class="btn bgh bsm" onclick="canCTabJEdit(${i})">Anuluj</button>
+          </div>
+        </div>
+      </div>`).join('')||'<div class="es"><p>Brak wpisów.</p></div>'}</div>`;
+  initRTE('ctj-tb','ctj-ed');
+  document.getElementById('ctj-ed').addEventListener('focus',()=>A='ctj-ed');
+  entries.forEach((_,i)=>initRTE('ctjtb-'+i,'ctjed-'+i));
+}
+
 
 // custom tab notes helpers
 function openNewCTabNoteModal(tabId){
@@ -1355,16 +1355,9 @@ async function createCTabNote(tabId){
 function togCTabNoteEdit(tabId,i){
   const ea=document.getElementById('cne-'+i);
   const showing=ea.style.display!=='none';
-  if(!showing){
-    // Fill editor from DATA, not from DOM
-    const ed=document.getElementById('cned-'+i);
-    const note=(window._ctNotes||[])[i];
-    if(ed)ed.innerHTML=cleanHtml(note?.html||'');
-    A='cned-'+i;
-    setTimeout(()=>ed&&ed.focus(),50);
-  }
   ea.style.display=showing?'none':'block';
   document.getElementById('cne-btn-'+i).textContent=showing?'Edytuj':'Anuluj';
+  if(!showing){A='cned-'+i;}
 }
 async function saveCTabNoteEdit(tabId,i){
   const ed=document.getElementById('cned-'+i);
@@ -1376,14 +1369,10 @@ async function saveCTabNoteEdit(tabId,i){
     window._ctNotes[i].updated=new Date().toLocaleDateString('pl-PL');
   }
   await fs2('custom_tab',tabId,{notes:window._ctNotes});
-  // Close edit panel and re-render fresh from saved data
+  // Update view in place
+  const view=document.getElementById('cnb-'+i);
+  if(view)view.innerHTML=html;
   togCTabNoteEdit(tabId,i);
-  // Update displayed body without full page reload
-  const card=document.getElementById('cne-'+i);
-  if(card){
-    const body=card.previousElementSibling;
-    if(body&&body.classList.contains('note-body'))body.innerHTML=html;
-  }
 }
 async function delCTabNote(tabId,i){
   if(!confirm('Usunąć notatkę?'))return;
@@ -1424,14 +1413,10 @@ async function addCTabJEntry(tabId){
   goSec('ct_'+tabId,allTabs.find(x=>x.id===tabId)?.name||'');
 }
 function startEditCTabJ(tabId,i){
-  const ed=document.getElementById('ctjed-'+i);
-  const entry=(window._ctEntries||[])[i];
-  if(ed)ed.innerHTML=cleanHtml(entry?.html||'');
   document.getElementById('ctjv-'+i).style.display='none';
   document.getElementById('ctje-'+i).style.display='block';
   document.getElementById('ctjbtn-'+i).textContent='Zwiń';
   A='ctjed-'+i;
-  setTimeout(()=>ed&&ed.focus(),50);
 }
 function canCTabJEdit(i){
   document.getElementById('ctjv-'+i).style.display='block';
@@ -1446,7 +1431,6 @@ async function saveCTabJEdit(tabId,i){
   if(!window._ctEntries)window._ctEntries=[];
   if(window._ctEntries[i])window._ctEntries[i].html=html;
   await fs2('custom_tab',tabId,{entries:window._ctEntries});
-  // Update view in place from saved data
   const view=document.getElementById('ctjv-'+i);
   if(view)view.innerHTML=html;
   canCTabJEdit(i);
