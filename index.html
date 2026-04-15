@@ -14,7 +14,7 @@
   import { getFirestore, doc, getDoc, setDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-     // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
+   // ★★★ WKLEJ TUTAJ SWOJE DANE Z FIREBASE CONSOLE ★★★
   const firebaseConfig = {
     apiKey:            "AIzaSyB2AeFZHfUWD0Az_R8gcJfkQPqzjENBWF4",
     authDomain:        "oko-projektu.firebaseapp.com",
@@ -1288,10 +1288,12 @@ async function renderCustomTab(secId){
   }else if(tab.fmt==='journal'){
     window._ctEntries=data?.entries||[];
     renderCTabJournal(tabId,tab.name);
-  }else if(tab.fmt==='finance'){
-    renderCTabFinance(tabId,tab.name,data);
-  }else if(tab.fmt==='progress'){
-    renderCTabProgress(tabId,tab.name,data);
+  }else if(tab.fmt==='goal_finance'){
+    window._ctGoalFin=data||{title:'',target:0,entries:[]};
+    renderCTabGoalFinance(tabId,tab.name);
+  }else if(tab.fmt==='goal_progress'){
+    window._ctGoalProg=data||{goals:[]};
+    renderCTabGoalProgress(tabId,tab.name);
   }
 }
 
